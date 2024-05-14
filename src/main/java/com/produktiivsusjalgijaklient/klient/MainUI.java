@@ -1,14 +1,13 @@
 package com.produktiivsusjalgijaklient.klient;
 
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
@@ -17,6 +16,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class MainUI extends Application {
 
@@ -27,13 +28,44 @@ public class MainUI extends Application {
     @Override
     public void start(Stage primaryStage) {
         Stage peaLava = new Stage();
-        try {
-            peaLava.setScene(sisselogimisUI());
-            peaLava.setTitle("Sisselogimine");
-            peaLava.showAndWait();
-        } catch (IOException viga) {
+//        try {
+//            peaLava.setScene(sisselogimisUI());
+//            peaLava.setTitle("Sisselogimine");
+//            peaLava.showAndWait();
+//        } catch (IOException viga) {
+//
+//        }
+        ArrayList<String> andmed = new ArrayList<>(Arrays.asList("valik1", "valik2", "valik3", "valik4", "valik5", "valik6", "valik7"));
+        ObservableList<String> valikudNaidatuna = FXCollections.observableArrayList(andmed);
+        peaLava.setScene(kuvaAndmed(valikudNaidatuna));
+        peaLava.setTitle("Katsetus");
+        peaLava.show();
+    }
 
-        }
+    private Scene kuvaAndmed(ObservableList<String> valikud) {
+        ListView<String> valikuVaade = new ListView<>(valikud);
+
+        valikuVaade.setCellFactory(param -> new ListCell<>() {
+            @Override
+            protected void updateItem(String valik, boolean kasTuhi) {
+                super.updateItem(valik, kasTuhi);
+                if (kasTuhi || valik == null) {
+                    setText(null);
+                } else {
+                    setText(valik);
+                    setPrefHeight(50);
+                    setPrefWidth(200);
+                }
+            }
+        });
+
+        valikuVaade.setPadding(new Insets(5));
+
+        VBox juur = new VBox();
+        juur.getChildren().add(valikuVaade);
+        Scene stseen = new Scene(juur);
+        stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Teema.css");
+        return stseen;
     }
 
     private void saadaAndmed(String andmed) {

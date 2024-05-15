@@ -193,6 +193,21 @@ public class Andmebaas implements AutoCloseable {
         }
     }
 
+    public int tagastaKasutajaID(String kasutajaNimi, String parool) throws SQLException {
+        final String tagastaKasutajaID =
+                "SELECT kasutaja_id " +
+                        "FROM kasutajad " +
+                        "WHERE nimi=? AND parool=?";
+
+        try (PreparedStatement tagastaKasutajaIDLause = andmebaas.prepareStatement(tagastaKasutajaID)) {
+            tagastaKasutajaIDLause.setString(1, kasutajaNimi);
+            tagastaKasutajaIDLause.setString(2, parool);
+            ResultSet tagastus = tagastaKasutajaIDLause.executeQuery();
+            tagastus.next();
+            return tagastus.getInt("kasutaja_id");
+        }
+    }
+
     public int lisaUusEesmark(String eesmargiNimi, int kasutajaID) {
         final String lisaUusEesmark =
                 "INSERT INTO eesmargid (eesmark_nimi, kasutaja_id) " +

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
     private Andmebaas andmebaas;
     private Logija logija;
+    private int kasutajaID;
 
     public LokaalneAndmeHaldur(String andmebaasiNimi) throws SQLException, IOException {
         logija = new Logija();
@@ -33,11 +34,19 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
     }
 
     @Override
-    public autentimisOnnestumus logiSisse(String kasutajaNimi, char[] parool) throws SQLException {
+    public autentimisOnnestumus logiSisse(String kasutajaNimi, char[] parool) throws SQLException, IOException {
         if (!andmebaas.kasKasutajanimiOlemas(kasutajaNimi)) return autentimisOnnestumus.VALE_KASUTAJANIMI;
         String[] kasutajaAndmed = andmebaas.tagastaKasutajaSoolJaRasi(kasutajaNimi);
         String parooliRasi = ParooliRasija.looParooliRasi(parool, kasutajaAndmed[0]);
-        if (parooliRasi.contentEquals(kasutajaAndmed[1])) return autentimisOnnestumus.AUTENDITUD;
+        if (parooliRasi.contentEquals(kasutajaAndmed[1])) {
+            try {
+                kasutajaID = andmebaas.tagastaKasutajaID(kasutajaNimi, parooliRasi);
+            } catch (SQLException viga) {
+                logija.kirjutaErind(viga, "Kasutaja ID tagastamine");
+                throw viga;
+            }
+            return autentimisOnnestumus.AUTENDITUD;
+        }
         return autentimisOnnestumus.VALE_PAROOL;
     }
 

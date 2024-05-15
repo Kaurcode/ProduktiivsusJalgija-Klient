@@ -1,5 +1,6 @@
 package com.produktiivsusjalgijaklient.klient;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -16,7 +17,7 @@ public interface AndmeHaldur {
     }
 
     public kasutajaLoomisOnnestumus looKasutaja(String kasutajaNimi, char[] parool) throws SQLException;
-    public autentimisOnnestumus logiSisse(String kasutajaNimi, char[] parool) throws SQLException;
+    public autentimisOnnestumus logiSisse(String kasutajaNimi, char[] parool) throws SQLException, IOException;
 
     public ArrayList<Ulesanne> tagastaUlesanded(int eesmargiID);
 }

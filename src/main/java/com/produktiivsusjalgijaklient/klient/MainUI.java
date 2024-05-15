@@ -14,6 +14,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -59,6 +60,7 @@ public class MainUI extends Application {
                     setText(valik);
                     setPrefHeight(50);
                     setPrefWidth(200);
+                    setFont(Font.font(14));
                 }
             }
         });

@@ -1,5 +1,7 @@
 package com.produktiivsusjalgijaklient.klient;
 
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 public interface AndmeHaldur {
@@ -11,11 +13,11 @@ public interface AndmeHaldur {
 
     public enum kasutajaLoomisOnnestumus {
         KASUTAJA_LOODUD,
-        MITTEUNIKAALNE_KASUTAJANIMI,
+        MITTEUNIKAALNE_KASUTAJANIMI;
     }
 
-    public kasutajaLoomisOnnestumus looKasutaja(String kasutajaNimi, String parool);
-    public autentimisOnnestumus logiSisse(String kasutajaNimi, String parool);
+    public kasutajaLoomisOnnestumus looKasutaja(String kasutajaNimi, char[] parool) throws SQLException, IOException;
+    public autentimisOnnestumus logiSisse(String kasutajaNimi, char[] parool) throws SQLException, IOException;
 
-    public ArrayList<Ulesanne> tagastaUlesanded(int eesmargiID);
+    public ArrayList<Ulesanne> tagastaUlesanded(int eesmargiID) throws IOException, SQLException;
 }

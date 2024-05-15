@@ -22,4 +22,8 @@ public class Ulesanne {
         this(ulesandeID, ulesandeNimi, tehtud);
         this.tahtaeg = tahtaeg;
     }
+
+    public String getUlesandeNimi() {
+        return ulesandeNimi;
+    }
 }

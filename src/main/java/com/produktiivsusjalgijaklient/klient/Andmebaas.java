@@ -25,13 +25,9 @@ public class Andmebaas implements AutoCloseable {
     }
 
     public boolean kasOlemOlemas(String olemiNimi) throws SQLException {
-        try {
-            DatabaseMetaData metaAndmed = andmebaas.getMetaData();
-            try (ResultSet kasOlemOlemas = metaAndmed.getTables(null, null, olemiNimi, new String[]{"TABLE"})) {
-                return kasOlemOlemas.next();
-            }
-        } catch (SQLException viga) {
-            throw viga;
+        DatabaseMetaData metaAndmed = andmebaas.getMetaData();
+        try (ResultSet kasOlemOlemas = metaAndmed.getTables(null, null, olemiNimi, new String[]{"TABLE"})) {
+            return kasOlemOlemas.next();
         }
     }
 
@@ -53,8 +49,6 @@ public class Andmebaas implements AutoCloseable {
         try (PreparedStatement looKasutajadOlemLause = andmebaas.prepareStatement(looKasutajadOlem)) {
             looKasutajadOlemLause.executeUpdate();
             System.out.printf("%s olem loodud\n", tabeliNimi);
-        } catch (SQLException viga) {
-            throw viga;
         }
     }
 
@@ -79,8 +73,6 @@ public class Andmebaas implements AutoCloseable {
         try (PreparedStatement looEesmargidOlemLause = andmebaas.prepareStatement(looEesmargidOlem)) {
             looEesmargidOlemLause.executeUpdate();
             System.out.printf("%s olem loodud\n", tabeliNimi);
-        } catch (SQLException viga) {
-            throw viga;
         }
     }
 
@@ -106,8 +98,6 @@ public class Andmebaas implements AutoCloseable {
         try (PreparedStatement looUlesandedOlemLause = andmebaas.prepareStatement(looUlesandedOlem)) {
             looUlesandedOlemLause.executeUpdate();
             System.out.printf("%s olem loodud\n", tabeliNimi);
-        } catch (SQLException viga) {
-            throw viga;
         }
     }
 
@@ -131,12 +121,10 @@ public class Andmebaas implements AutoCloseable {
         try (PreparedStatement looProduktiivsusAegOlemLause = andmebaas.prepareStatement(looProduktiivsusAegOlem)) {
             looProduktiivsusAegOlemLause.executeUpdate();
             System.out.printf("%s olem loodud\n", tabeliNimi);
-        } catch (SQLException viga) {
-            throw viga;
         }
     }
 
-    public int lisaUusKasutaja(String kasutajaNimi, char[] parooli_sool, char[] parooli_rasi) {
+    public int lisaUusKasutaja(String kasutajaNimi, String parooli_sool, String parooli_rasi) throws SQLException {
         final String lisaUusKasutaja =
                 "INSERT INTO kasutajad (nimi, parooli_sool, parooli_rasi) " +
                         "VALUES (?, ?, ?)";
@@ -145,17 +133,62 @@ public class Andmebaas implements AutoCloseable {
         try (PreparedStatement lisaUusKasutajaLause =
                      andmebaas.prepareStatement(lisaUusKasutaja, PreparedStatement.RETURN_GENERATED_KEYS)) {
             lisaUusKasutajaLause.setString(1, kasutajaNimi);
-            lisaUusKasutajaLause.setString(2, new String(parooli_sool));
-            lisaUusKasutajaLause.setString(3, new String(parooli_rasi));
+            lisaUusKasutajaLause.setString(2, parooli_sool);
+            lisaUusKasutajaLause.setString(3, parooli_rasi);
             kasutajaID = kontrolliLisatudOlemit(lisaUusKasutajaLause, "Kasutaja");
-        } catch (SQLException viga) {
-            System.out.println("Kasutaja olemi loomisel tekkis viga: " + viga.getMessage());
         }
 
         return kasutajaID;
     }
 
-    public int lisaUusEesmark(String eesmargiNimi, int kasutajaID) {
+    public boolean kasKasutajanimiOlemas(String kasutajaNimi) throws SQLException {
+        final String kontrolliUnikaalsust =
+                "SELECT COUNT(*) AS kasutajate_arv " +
+                        "FROM kasutajad " +
+                        "WHERE kasutajad.nimi=?";
+
+        try (PreparedStatement kontrolliUnikaalsustLause = andmebaas.prepareStatement(kontrolliUnikaalsust)) {
+            kontrolliUnikaalsustLause.setString(1, kasutajaNimi);
+            ResultSet tagastus = kontrolliUnikaalsustLause.executeQuery();
+            tagastus.next();
+            int kasutajateArv = tagastus.getInt("kasutajate_arv");
+            return kasutajateArv > 0;
+        }
+    }
+
+    public String[] tagastaKasutajaSoolJaRasi(String kasutajaNimi) throws SQLException {
+        final String tagastaKasutajaSoolJaRasi =
+                "SELECT parooli_sool, parooli_rasi " +
+                        "FROM kasutajad " +
+                        "WHERE kasutajad.nimi=?";
+
+        try (PreparedStatement tagastaKasutajaSoolJaRasiLause = andmebaas.prepareStatement(tagastaKasutajaSoolJaRasi)) {
+            tagastaKasutajaSoolJaRasiLause.setString(1, kasutajaNimi);
+            ResultSet tagastus = tagastaKasutajaSoolJaRasiLause.executeQuery();
+            String[] kasutajaAndmed = new String[2];
+            tagastus.next();
+            kasutajaAndmed[0] = tagastus.getString("parooli_sool");
+            kasutajaAndmed[1] = tagastus.getString("parooli_rasi");
+            return kasutajaAndmed;
+        }
+    }
+
+    public int tagastaKasutajaID(String kasutajaNimi, String parool) throws SQLException {
+        final String tagastaKasutajaID =
+                "SELECT kasutaja_id " +
+                        "FROM kasutajad " +
+                        "WHERE nimi=? AND parooli_rasi=?";
+
+        try (PreparedStatement tagastaKasutajaIDLause = andmebaas.prepareStatement(tagastaKasutajaID)) {
+            tagastaKasutajaIDLause.setString(1, kasutajaNimi);
+            tagastaKasutajaIDLause.setString(2, parool);
+            ResultSet tagastus = tagastaKasutajaIDLause.executeQuery();
+            tagastus.next();
+            return tagastus.getInt("kasutaja_id");
+        }
+    }
+
+    public int lisaUusEesmark(String eesmargiNimi, int kasutajaID) throws SQLException {
         final String lisaUusEesmark =
                 "INSERT INTO eesmargid (eesmark_nimi, kasutaja_id) " +
                         "VALUES (?, ?)";
@@ -167,14 +200,12 @@ public class Andmebaas implements AutoCloseable {
             lisaUusEesmarkLause.setInt(2, kasutajaID);
 
             eesmarkID = kontrolliLisatudOlemit(lisaUusEesmarkLause, "Ülesanne");
-        } catch (SQLException viga) {
-            System.out.println("Ülesande olemi loomisel tekkis viga: " + viga.getMessage());
         }
 
         return eesmarkID;
     }
 
-    public int lisaUusEesmark(String eesmargiNimi, int kasutajaID, Timestamp tahtaeg) {
+    public int lisaUusEesmark(String eesmargiNimi, int kasutajaID, Timestamp tahtaeg) throws SQLException {
         final String lisaUusEesmark =
                 "INSERT INTO eesmargid (eesmark_nimi, kasutaja_id, tahtaeg) " +
                         "VALUES (?, ?, ?)";
@@ -187,14 +218,12 @@ public class Andmebaas implements AutoCloseable {
             lisaUusEesmarkLause.setLong(3, tahtaeg.getTime());
 
             eesmarkID = kontrolliLisatudOlemit(lisaUusEesmarkLause, "Ülesanne");
-        } catch (SQLException viga) {
-            System.out.println("Ülesande olemi loomisel tekkis viga: " + viga.getMessage());
         }
 
         return eesmarkID;
     }
 
-    public int lisaUusUlesanne(String ulesandeNimi, int eesmarkID) {
+    public int lisaUusUlesanne(String ulesandeNimi, int eesmarkID) throws SQLException {
         final String lisaUusUlesanne =
                 "INSERT INTO ulesanded (ulesanne_nimi, eesmark_id) " +
                         "VALUES (?, ?)";
@@ -206,14 +235,12 @@ public class Andmebaas implements AutoCloseable {
             lisaUusUlesanneLause.setInt(2, eesmarkID);
 
             ulesandeID = kontrolliLisatudOlemit(lisaUusUlesanneLause, "Ülesanne");
-        } catch (SQLException viga) {
-            System.out.println("Ülesande olemi loomisel tekkis viga: " + viga.getMessage());
         }
 
         return ulesandeID;
     }
 
-    public int lisaUusUlesanne(String ulesandeNimi, int eesmarkID, Timestamp tahtaeg) {
+    public int lisaUusUlesanne(String ulesandeNimi, int eesmarkID, Timestamp tahtaeg) throws SQLException {
         final String lisaUusUlesanne =
                 "INSERT INTO ulesanded (ulesanne_nimi, eesmark_id, tahtaeg) " +
                         "VALUES (?, ?, ?)";
@@ -226,8 +253,6 @@ public class Andmebaas implements AutoCloseable {
             lisaUusUlesanneLause.setLong(3, tahtaeg.getTime());
 
             ulesandeID = kontrolliLisatudOlemit(lisaUusUlesanneLause, "Ülesanne");
-        } catch (SQLException viga) {
-            System.out.println("Ülesande olemi loomisel tekkis viga: " + viga.getMessage());
         }
 
         return ulesandeID;
@@ -250,13 +275,12 @@ public class Andmebaas implements AutoCloseable {
             olemiID = uueOlemiID.getInt(1);
             System.out.printf("%s lisamine edukas\n", olemiTuup);
 
-        } catch (SQLException viga) {
-            System.out.printf("%s võtme id tagastamisel tekkis viga: %s\n", olemiTuup, viga.getMessage());
         }
+
         return olemiID;
     }
 
-    public ArrayList<Ulesanne> tagastaUlesanneteOlemid(int eesmarkID){
+    public ArrayList<Ulesanne> tagastaUlesanneteOlemid(int eesmarkID) throws SQLException {
         ArrayList<Ulesanne> ulesanded = new ArrayList<Ulesanne>();
         final String tagastaUlesanneteOlemid =
                 "SELECT ulesanne_id, ulesanne_nimi, kas_tehtud, tahtaeg " +
@@ -280,14 +304,39 @@ public class Andmebaas implements AutoCloseable {
                     }
 
                 }
-            } catch (SQLException viga) {
-                System.out.println("Ülesannete olemite tagastamisel tekkis viga: " + viga.getMessage());
             }
-        } catch (SQLException viga) {
-            System.out.println("Ülesannete olemite tagastamise lause käitamisel tekkis viga: " + viga.getMessage());
         }
 
         return ulesanded;
+    }
+
+    public ArrayList<Eesmark> tagastaEesmarkideOlemid(int kasutajaID) throws SQLException {
+        ArrayList<Eesmark> eesmargid = new ArrayList<Eesmark>();
+        final String tagastaEesmarkideOlemid =
+                "SELECT eesmark_id, eesmark_nimi, kas_tehtud, tahtaeg " +
+                        "FROM eesmargid " +
+                        "WHERE kasutaja_id = ?";
+
+        try (PreparedStatement tagastaEesmargidOlemidLause = andmebaas.prepareStatement(tagastaEesmarkideOlemid)) {
+            tagastaEesmargidOlemidLause.setInt(1, kasutajaID);
+
+            try (ResultSet tagastaOlemidLauseTulem = tagastaEesmargidOlemidLause.executeQuery()) {
+                while (tagastaOlemidLauseTulem.next()) {
+                    int ulesandeID = tagastaOlemidLauseTulem.getInt("eesmark_id");
+                    String ulesandeNimi = tagastaOlemidLauseTulem.getString("eesmark_nimi");
+                    boolean tehtud = tagastaOlemidLauseTulem.getBoolean("kas_tehtud");
+                    int aegEpochist = tagastaOlemidLauseTulem.getInt("tahtaeg");
+
+                    if (tagastaOlemidLauseTulem.wasNull()) {
+                        eesmargid.add(new Eesmark(ulesandeID, ulesandeNimi, tehtud));
+                    } else {
+                        eesmargid.add(new Eesmark(ulesandeID, ulesandeNimi, tehtud, new Timestamp(aegEpochist)));
+                    }
+                }
+            }
+        }
+
+        return eesmargid;
     }
 
     @Override

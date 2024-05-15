@@ -2,12 +2,10 @@ package com.produktiivsusjalgijaklient.klient;
 
 public class Kasutaja {
     private String kasutajaNimi;
+    private int kasutajaID;
 
-    private String parool;
-
-    public Kasutaja(String kasutajaNimi, String parool) {
+    public Kasutaja(String kasutajaNimi) {
         this.kasutajaNimi = kasutajaNimi;
-        this.parool = parool;
     }
 
 

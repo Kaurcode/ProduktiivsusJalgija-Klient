@@ -19,6 +19,10 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
         }
     }
 
+    public Andmebaas getAndmebaas() {
+        return andmebaas;
+    }
+
     public void kirjutaLogi(String logi) throws IOException {
         logija.kirjutaLogi(logi);
     }

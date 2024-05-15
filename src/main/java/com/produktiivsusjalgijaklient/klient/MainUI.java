@@ -60,7 +60,7 @@ public class MainUI extends Application {
         ArrayList<Eesmark> finalAndmed = andmed;
         andmed = andmeHaldur.tagastaEesmargid(andmeHaldur.getKasutajaID());
         ObservableList<Eesmark> valikud = FXCollections.observableArrayList(andmed);
-        ListView<Eesmark> valikuVaade = new ListView<>();
+        ListView<Eesmark> valikuVaade = new ListView<>(valikud);
 
         valikuVaade.setCellFactory(new Callback<ListView<Eesmark>, ListCell<Eesmark>>() {
             @Override

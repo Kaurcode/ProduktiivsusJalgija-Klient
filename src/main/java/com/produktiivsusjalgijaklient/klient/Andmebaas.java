@@ -197,7 +197,7 @@ public class Andmebaas implements AutoCloseable {
         final String tagastaKasutajaID =
                 "SELECT kasutaja_id " +
                         "FROM kasutajad " +
-                        "WHERE nimi=? AND parool=?";
+                        "WHERE nimi=? AND parooli_rasi=?";
 
         try (PreparedStatement tagastaKasutajaIDLause = andmebaas.prepareStatement(tagastaKasutajaID)) {
             tagastaKasutajaIDLause.setString(1, kasutajaNimi);

@@ -39,6 +39,10 @@ public class Eesmark {
         this(eesmargiID, eesmargiNimi, false, ulesanded);
     }
 
+    public String getEesmargiNimi() {
+        return eesmargiNimi;
+    }
+
     public int getEesmargiID() {
         return eesmargiID;
     }

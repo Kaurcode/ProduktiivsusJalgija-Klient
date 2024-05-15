@@ -10,6 +10,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -25,6 +26,7 @@ public class MainUI extends Application {
 
     public static void main(String[] args) {
         launch(args);
+        System.out.println("Tere");
     }
 
     @Override
@@ -66,7 +68,7 @@ public class MainUI extends Application {
         Button lookasutajaNupp = new Button("Loo uus kasutaja");
         lookasutajaNupp.setOnAction(actionEvent -> {
             try {
-                looUusKasutaja(lookasutajaNupp.getScene(), lookasutajaNupp.getScene().getWindow());
+                looUusKasutaja(lookasutajaNupp.getScene(), lookasutajaNupp.getScene().getWindow(), valikud);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -170,23 +172,9 @@ public class MainUI extends Application {
         return stseen;
     }
 
-    private void looUusKasutaja(Scene eelmine, Window omanik) throws IOException {
-        VBox juur = new VBox();
-        juur.setAlignment(Pos.CENTER);
-        juur.setSpacing(10);
+    private void looUusKasutaja(Scene eelmine, Window omanik, ObservableList<String> valikud) throws IOException {
 
-        TextField kasutajaNimiInput = new TextField();
-        kasutajaNimiInput.setPromptText("Sisesta kasutajanimi");
-
-        TextField paroolInput = new TextField();
-        paroolInput.setPromptText("Sisesta parool");
-
-        Button looKasutajaNupp = new Button("Loo kasutaja");
-        // Siia saad lisada tegevuse, mis loob uue kasutaja vastavalt sisestatud andmetele
-
-        juur.getChildren().addAll(kasutajaNimiInput, paroolInput, looKasutajaNupp);
-
-        Scene uus = uueKasutajaUI();
+        Scene uus = uueKasutajaUI(valikud, eelmine, omanik);
 
         Stage peaLava = (Stage) omanik;
         peaLava.close();
@@ -195,10 +183,10 @@ public class MainUI extends Application {
         uusLava.setScene(uus);
         uusLava.initOwner(omanik);
         uusLava.initModality(Modality.WINDOW_MODAL);
-        uusLava.show();
+        uusLava.showAndWait();
     }
 
-    private Scene uueKasutajaUI() throws IOException {
+    private Scene uueKasutajaUI(ObservableList<String> valikud, Scene eelmine, Window omanik) throws IOException {
         VBox juur = new VBox();
 
         juur.setPadding(new Insets(15));
@@ -264,7 +252,21 @@ public class MainUI extends Application {
         juur.getChildren().add(infoSisend);
 
         Button edasiNupp = new Button("Loo uus kasutaja");
-        juur.getChildren().add(edasiNupp);
+        edasiNupp.setOnAction(actionEvent -> {
+            if (kontrolliNime(valikud, kasutajaNimeVali.getText())) {
+                System.out.println("Kasutaja loodud");
+                valikud.add(kasutajaNimeVali.getText());
+            } else {
+                System.out.println("Kasutaja juba olemas");
+            }
+        });
+
+        Button tagasi = new Button("Tagasi");
+        tagasi.setOnAction(actionEvent -> {
+            ((Stage) juur.getScene().getWindow()).close();
+            algneStseen(valikud);
+        });
+        juur.getChildren().addAll(edasiNupp, tagasi);
 
         Scene stseen = new Scene(juur);
         stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Teema.css");
@@ -303,5 +305,28 @@ public class MainUI extends Application {
         uusLava.initOwner(omanik);
         uusLava.initModality(Modality.WINDOW_MODAL);
         uusLava.show();
+    }
+
+    private boolean kontrolliNime(ObservableList<String> valikud, String kasutajanimi) {
+        if (valikud.contains(kasutajanimi)) {
+            System.out.println("Kasutaja juba olemas");
+            return false;
+        } else {
+            System.out.println("Kasutaja loodud");
+            return true;
+            //create new kasutaja
+        }
+    }
+
+    private void algneStseen(ObservableList<String> valikud) {
+        Stage peaLava = new Stage();
+        Scene algusStseen = kuvaAlgne(valikud);
+        peaLava.setScene(algusStseen);
+        peaLava.setTitle("Katsetus");
+        peaLava.show();
+    }
+
+    private Scene kuvaAlgne(ObservableList<String> valikud) {
+        return kuvaAndmed(valikud);
     }
 }

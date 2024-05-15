@@ -10,7 +10,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -18,79 +17,81 @@ import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.util.Callback;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class MainUI extends Application {
 
+
     public static void main(String[] args) {
+        /*try (LokaalneAndmeHaldur andmeHaldur = new LokaalneAndmeHaldur("produktiivsusjalgija")) {
+            System.out.println(andmeHaldur.logiSisse("Hannes", "parool".toCharArray()));
+            andmeHaldur.kirjutaLogi("Test");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }*/
         launch(args);
-        System.out.println("Tere");
     }
 
     @Override
-    public void start(Stage primaryStage) {
+    public void start(Stage primaryStage) throws SQLException, IOException {
         Stage peaLava = new Stage();
-//        try {
-//            peaLava.setScene(sisselogimisUI());
-//            peaLava.setTitle("Sisselogimine");
-//            peaLava.showAndWait();
-//        } catch (IOException viga) {
-//
-//        }
-        ArrayList<String> andmed = new ArrayList<>(Arrays.asList("kasutaja", "postgre", "sql", "hannes", "kaur", "kaur2", "kaur3"));
+        try {
+            LokaalneAndmeHaldur andmeHaldur = new LokaalneAndmeHaldur("produktiivsusjalgija");
+            ArrayList<Eesmark> andmed = new ArrayList<>();
+            //ObservableList<Eesmark> valikud = FXCollections.observableArrayList(andmed);
+            peaLava.setScene(sisselogimisUI(andmeHaldur, andmed));
+            peaLava.setTitle("Sisselogimine");
+            peaLava.show();
+        } catch (IOException viga) {
+            System.out.println("Viga graafika loomisel");
+        }
+        /*ArrayList<String> andmed = new ArrayList<>(Arrays.asList("kasutaja", "postgre", "sql", "hannes", "kaur", "kaur2", "kaur3"));
         ObservableList<String> valikudNaidatuna = FXCollections.observableArrayList(andmed);
         peaLava.setScene(kuvaAndmed(valikudNaidatuna));
         peaLava.setTitle("Katsetus");
-        peaLava.show();
+        peaLava.show();*/
     }
 
-    private Scene kuvaAndmed(ObservableList<String> valikud) {
-        ListView<String> valikuVaade = new ListView<>(valikud);
+    private Scene kuvaAndmed(Andmebaas andmebaas, ArrayList<Eesmark> andmed) {
+        andmed = andmebaas.tagastaEesmarkideOlemid(1);
+        ObservableList<Eesmark> valikud = FXCollections.observableArrayList(andmed);
+        ListView<Eesmark> valikuVaade = new ListView<>();
 
-        valikuVaade.setCellFactory(param -> new ListCell<>() {
+        valikuVaade.setCellFactory(new Callback<ListView<Eesmark>, ListCell<Eesmark>>() {
             @Override
-            protected void updateItem(String valik, boolean kasTuhi) {
-                super.updateItem(valik, kasTuhi);
-                if (kasTuhi || valik == null) {
-                    setText(null);
-                } else {
-                    setText(valik);
-                    setPrefHeight(50);
-                    setPrefWidth(200);
-                    setFont(Font.font(14));
-                }
+            public ListCell<Eesmark> call(ListView<Eesmark> param) {
+                return new ListCell<Eesmark>() {
+                    protected void updateItem(Eesmark eesmark, boolean kasTuhi) {
+                        super.updateItem(eesmark, kasTuhi);
+                        if (kasTuhi || eesmark == null) {
+                            setText(null);
+                        } else {
+                            setText(eesmark.getEesmargiNimi());
+                            setPrefHeight(50);
+                            setPrefWidth(200);
+                            setFont(Font.font(14));
+                        }
+                    }
+                };
             }
         });
 
         valikuVaade.setPadding(new Insets(5));
 
-        Button lookasutajaNupp = new Button("Loo uus kasutaja");
-        lookasutajaNupp.setOnAction(actionEvent -> {
-            try {
-                looUusKasutaja(lookasutajaNupp.getScene(), lookasutajaNupp.getScene().getWindow(), valikud);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        Button valiEesmark = new Button("Ok");
 
-        Button valikasutajaNupp = new Button("Vali kasutaja");
-        valikasutajaNupp.setOnAction(actionEvent -> {
-            String valitud = valikuVaade.getSelectionModel().getSelectedItem();
-            if (valitud != null) {
-                valitudKasutaja(valikasutajaNupp.getScene(), valikasutajaNupp.getScene().getWindow(), valitud);
-            } else {
-                System.out.println("Pead valima kasutaja enne edasi minemist");
-            }
-        });
+        Button tagasi = new Button("Tagasi");
 
         VBox juur = new VBox();
-        juur.getChildren().addAll(valikuVaade, lookasutajaNupp, valikasutajaNupp);
+        juur.getChildren().addAll(valikuVaade, valiEesmark, tagasi);
         juur.setAlignment(Pos.CENTER);
         juur.setSpacing(10);
-        VBox.setMargin(lookasutajaNupp, new Insets(10, 0, 20, 0));
+        VBox.setMargin(valiEesmark, new Insets(10, 0, 20, 0));
+        VBox.setMargin(tagasi, new Insets(10, 0, 20, 0));
         Scene stseen = new Scene(juur);
         stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Teema.css");
         return stseen;
@@ -100,7 +101,7 @@ public class MainUI extends Application {
         // TODO
     }
 
-    private Scene sisselogimisUI() throws IOException {
+    private Scene sisselogimisUI(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) throws IOException {
         VBox juur = new VBox();
 
         juur.setPadding(new Insets(15));
@@ -166,17 +167,39 @@ public class MainUI extends Application {
         juur.getChildren().add(infoSisend);
 
         Button edasiNupp = new Button("Edasi");
-        juur.getChildren().add(edasiNupp);
+        edasiNupp.setOnAction(actionEvent -> {
+            try {
+                if (andmeHaldur.logiSisse(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray()) == AndmeHaldur.autentimisOnnestumus.AUTENDITUD) {
+                    eesmarkideUI(edasiNupp.getScene(), edasiNupp.getScene().getWindow(), andmeHaldur, valikud);
+                } else if (andmeHaldur.logiSisse(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray()) == AndmeHaldur.autentimisOnnestumus.VALE_KASUTAJANIMI) {
+                    System.out.println("Kasutajanimi on vale");
+                } else {
+                    System.out.println("Parool on vale");
+                }
+            } catch (SQLException e) {
+                System.out.println("Probleem sisse logimisel");
+            }
+        });
 
+        Button lookasutajaNupp = new Button("Loo uus kasutaja");
+        lookasutajaNupp.setOnAction(actionEvent -> {
+            try {
+                looUusKasutaja(lookasutajaNupp.getScene(), lookasutajaNupp.getScene().getWindow(), andmeHaldur, valikud);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        juur.getChildren().addAll(edasiNupp, lookasutajaNupp);
         Scene stseen = new Scene(juur);
         stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Teema.css");
 
         return stseen;
     }
 
-    private void looUusKasutaja(Scene eelmine, Window omanik, ObservableList<String> valikud) throws IOException {
+    private void looUusKasutaja(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) throws IOException {
 
-        Scene uus = uueKasutajaUI(valikud, eelmine, omanik);
+        Scene uus = uueKasutajaUI(eelmine, omanik, andmeHaldur, valikud);
 
         Stage peaLava = (Stage) omanik;
         peaLava.close();
@@ -188,7 +211,7 @@ public class MainUI extends Application {
         uusLava.showAndWait();
     }
 
-    private Scene uueKasutajaUI(ObservableList<String> valikud, Scene eelmine, Window omanik) throws IOException {
+    private Scene uueKasutajaUI(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) throws IOException {
         VBox juur = new VBox();
 
         juur.setPadding(new Insets(15));
@@ -255,18 +278,25 @@ public class MainUI extends Application {
 
         Button edasiNupp = new Button("Loo uus kasutaja");
         edasiNupp.setOnAction(actionEvent -> {
-            if (kontrolliNime(valikud, kasutajaNimeVali.getText())) {
-                System.out.println("Kasutaja loodud");
-                valikud.add(kasutajaNimeVali.getText());
-            } else {
-                System.out.println("Kasutaja juba olemas");
+            try {
+                if (andmeHaldur.looKasutaja(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray()) == AndmeHaldur.kasutajaLoomisOnnestumus.MITTEUNIKAALNE_KASUTAJANIMI) {
+                    System.out.println("Kasutajanimi peab olema unikaalne");
+                } else {
+                    System.out.println(andmeHaldur.looKasutaja(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray()));
+                }
+            } catch (SQLException e) {
+                System.out.println("Viga kasutajatega");
             }
         });
 
         Button tagasi = new Button("Tagasi");
         tagasi.setOnAction(actionEvent -> {
             ((Stage) juur.getScene().getWindow()).close();
-            algneStseen(valikud);
+            try {
+                algneStseen(andmeHaldur, valikud);
+            } catch (IOException e) {
+                System.out.println("Probleem ekraani sulgemisel");
+            }
         });
         juur.getChildren().addAll(edasiNupp, tagasi);
 
@@ -309,26 +339,29 @@ public class MainUI extends Application {
         uusLava.show();
     }
 
-    private boolean kontrolliNime(ObservableList<String> valikud, String kasutajanimi) {
-        if (valikud.contains(kasutajanimi)) {
-            System.out.println("Kasutaja juba olemas");
-            return false;
-        } else {
-            System.out.println("Kasutaja loodud");
-            return true;
-            //create new kasutaja
-        }
-    }
-
-    private void algneStseen(ObservableList<String> valikud) {
+    private void algneStseen(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) throws IOException {
         Stage peaLava = new Stage();
-        Scene algusStseen = kuvaAlgne(valikud);
+        Scene algusStseen = kuvaAlgne(andmeHaldur, valikud);
         peaLava.setScene(algusStseen);
-        peaLava.setTitle("Katsetus");
+        peaLava.setTitle("Sisse logimine");
         peaLava.show();
     }
 
-    private Scene kuvaAlgne(ObservableList<String> valikud) {
-        return kuvaAndmed(valikud);
+    private Scene kuvaAlgne(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) throws IOException {
+        return sisselogimisUI(andmeHaldur, valikud);
+    }
+
+    private void eesmarkideUI(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud ) {
+
+            Scene uus = kuvaAndmed(andmeHaldur.getAndmebaas(), valikud);
+
+            Stage peaLava = (Stage) omanik;
+            peaLava.close();
+
+            Stage uusLava = new Stage();
+            uusLava.setScene(uus);
+            uusLava.initOwner(omanik);
+            uusLava.initModality(Modality.WINDOW_MODAL);
+            uusLava.showAndWait();
     }
 }

@@ -56,10 +56,11 @@ public class MainUI extends Application {
         peaLava.show();*/
     }
 
-    private Scene kuvaAndmed(Andmebaas andmebaas, ArrayList<Eesmark> andmed) {
-        andmed = andmebaas.tagastaEesmarkideOlemid(1);
+    private Scene kuvaAndmed(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> andmed) {
+        ArrayList<Eesmark> finalAndmed = andmed;
+        andmed = andmeHaldur.tagastaEesmargid(andmeHaldur.getKasutajaID());
         ObservableList<Eesmark> valikud = FXCollections.observableArrayList(andmed);
-        ListView<Eesmark> valikuVaade = new ListView<>();
+        ListView<Eesmark> valikuVaade = new ListView<>(valikud);
 
         valikuVaade.setCellFactory(new Callback<ListView<Eesmark>, ListCell<Eesmark>>() {
             @Override
@@ -82,15 +83,31 @@ public class MainUI extends Application {
 
         valikuVaade.setPadding(new Insets(5));
 
+        VBox juur = new VBox();
+
         Button valiEesmark = new Button("Ok");
 
-        Button tagasi = new Button("Tagasi");
+        Button looEesmark = new Button("Loo uus eesmärk");
+        looEesmark.setOnAction(actionEvent -> {
+            ((Stage) juur.getScene().getWindow()).close();
+            uusEesmark(looEesmark.getScene(), looEesmark.getScene().getWindow(), andmeHaldur, finalAndmed);
+        });
 
-        VBox juur = new VBox();
-        juur.getChildren().addAll(valikuVaade, valiEesmark, tagasi);
+        Button tagasi = new Button("Tagasi");
+        tagasi.setOnAction(actionEvent -> {
+            ((Stage) juur.getScene().getWindow()).close();
+            try {
+                algneStseen(andmeHaldur, finalAndmed);
+            } catch (IOException | SQLException e) {
+                System.out.println("Probleem ekraani sulgemisel");
+            }
+        });
+
+        juur.getChildren().addAll(valikuVaade, valiEesmark, looEesmark, tagasi);
         juur.setAlignment(Pos.CENTER);
         juur.setSpacing(10);
         VBox.setMargin(valiEesmark, new Insets(10, 0, 20, 0));
+        VBox.setMargin(looEesmark, new Insets(10, 0, 20, 0));
         VBox.setMargin(tagasi, new Insets(10, 0, 20, 0));
         Scene stseen = new Scene(juur);
         stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Teema.css");
@@ -101,7 +118,7 @@ public class MainUI extends Application {
         // TODO
     }
 
-    private Scene sisselogimisUI(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) throws IOException {
+    private Scene sisselogimisUI(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) throws IOException, SQLException {
         VBox juur = new VBox();
 
         juur.setPadding(new Insets(15));
@@ -167,8 +184,10 @@ public class MainUI extends Application {
         juur.getChildren().add(infoSisend);
 
         Button edasiNupp = new Button("Edasi");
+        System.out.println(andmeHaldur.logiSisse(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray()));
         edasiNupp.setOnAction(actionEvent -> {
             try {
+                System.out.println(andmeHaldur.logiSisse(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray()));
                 if (andmeHaldur.logiSisse(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray()) == AndmeHaldur.autentimisOnnestumus.AUTENDITUD) {
                     eesmarkideUI(edasiNupp.getScene(), edasiNupp.getScene().getWindow(), andmeHaldur, valikud);
                 } else if (andmeHaldur.logiSisse(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray()) == AndmeHaldur.autentimisOnnestumus.VALE_KASUTAJANIMI) {
@@ -176,7 +195,7 @@ public class MainUI extends Application {
                 } else {
                     System.out.println("Parool on vale");
                 }
-            } catch (SQLException e) {
+            } catch (SQLException | IOException e) {
                 System.out.println("Probleem sisse logimisel");
             }
         });
@@ -208,7 +227,7 @@ public class MainUI extends Application {
         uusLava.setScene(uus);
         uusLava.initOwner(omanik);
         uusLava.initModality(Modality.WINDOW_MODAL);
-        uusLava.showAndWait();
+        uusLava.show();
     }
 
     private Scene uueKasutajaUI(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) throws IOException {
@@ -296,6 +315,8 @@ public class MainUI extends Application {
                 algneStseen(andmeHaldur, valikud);
             } catch (IOException e) {
                 System.out.println("Probleem ekraani sulgemisel");
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
         });
         juur.getChildren().addAll(edasiNupp, tagasi);
@@ -339,7 +360,7 @@ public class MainUI extends Application {
         uusLava.show();
     }
 
-    private void algneStseen(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) throws IOException {
+    private void algneStseen(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) throws IOException, SQLException {
         Stage peaLava = new Stage();
         Scene algusStseen = kuvaAlgne(andmeHaldur, valikud);
         peaLava.setScene(algusStseen);
@@ -347,13 +368,13 @@ public class MainUI extends Application {
         peaLava.show();
     }
 
-    private Scene kuvaAlgne(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) throws IOException {
+    private Scene kuvaAlgne(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) throws IOException, SQLException {
         return sisselogimisUI(andmeHaldur, valikud);
     }
 
     private void eesmarkideUI(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud ) {
 
-            Scene uus = kuvaAndmed(andmeHaldur.getAndmebaas(), valikud);
+            Scene uus = kuvaAndmed(andmeHaldur, valikud);
 
             Stage peaLava = (Stage) omanik;
             peaLava.close();
@@ -362,6 +383,113 @@ public class MainUI extends Application {
             uusLava.setScene(uus);
             uusLava.initOwner(omanik);
             uusLava.initModality(Modality.WINDOW_MODAL);
-            uusLava.showAndWait();
+            uusLava.show();
+    }
+
+    private void ulesanneteUI(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Ulesanne> ulesanded) {
+        //Scene uus = kuvaeesmargid(andmeHaldur, ulesanded, 2);
+        //Vaja saada eesmargi ID
+    }
+
+    private Scene kuvaulesanded(LokaalneAndmeHaldur andmeHaldur, ArrayList<Ulesanne> andmed, int eesmargiID) {
+        ArrayList<Ulesanne> finalAndmed = andmed;
+        andmed = andmeHaldur.getAndmebaas().tagastaUlesanneteOlemid(eesmargiID);
+        ObservableList<Ulesanne> valikud = FXCollections.observableArrayList(andmed);
+        ListView<Ulesanne> valikuVaade = new ListView<>();
+
+        valikuVaade.setCellFactory(new Callback<ListView<Ulesanne>, ListCell<Ulesanne>>() {
+            @Override
+            public ListCell<Ulesanne> call(ListView<Ulesanne> param) {
+                return new ListCell<Ulesanne>() {
+                    protected void updateItem(Ulesanne ulesanne, boolean kasTuhi) {
+                        super.updateItem(ulesanne, kasTuhi);
+                        if (kasTuhi || ulesanne == null) {
+                            setText(null);
+                        } else {
+                            setText(ulesanne.getUlesandeNimi());
+                            setPrefHeight(50);
+                            setPrefWidth(200);
+                            setFont(Font.font(14));
+                        }
+                    }
+                };
+            }
+        });
+
+        valikuVaade.setPadding(new Insets(5));
+
+        VBox juur = new VBox();
+
+        Button valiUlesanne = new Button("Ok");
+
+        Button looUlesanne = new Button("Loo uus ülesanne");
+
+        Button tagasi = new Button("Tagasi");
+        tagasi.setOnAction(actionEvent -> {
+            ((Stage) juur.getScene().getWindow()).close();
+            //kuvaAndmed(andmeHaldur, andmeHaldur.tagastaEesmargid(1))
+            //Vaja lahendust kasutaja ID säilitamiseks
+        });
+
+        juur.getChildren().addAll(valikuVaade, valiUlesanne, looUlesanne, tagasi);
+        juur.setAlignment(Pos.CENTER);
+        juur.setSpacing(10);
+        VBox.setMargin(valiUlesanne, new Insets(10, 0, 20, 0));
+        VBox.setMargin(looUlesanne, new Insets(10, 0, 20, 0));
+        VBox.setMargin(tagasi, new Insets(10, 0, 20, 0));
+        Scene stseen = new Scene(juur);
+        stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Teema.css");
+        return stseen;
+    }
+
+    private void uusEesmark(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) {
+
+        Scene uus = uusEesmarkUI(andmeHaldur, valikud);
+
+        Stage peaLava = (Stage) omanik;
+        peaLava.close();
+
+        Stage uusLava = new Stage();
+        uusLava.setScene(uus);
+        uusLava.initOwner(omanik);
+        uusLava.initModality(Modality.WINDOW_MODAL);
+        uusLava.show();
+    }
+
+    private Scene uusEesmarkUI(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) {
+        VBox juur = new VBox();
+
+        juur.setPadding(new Insets(15));
+        juur.setSpacing(20);
+        juur.setAlignment(Pos.CENTER);
+
+        juur.setPrefHeight(200);
+        juur.setPrefWidth(500);
+
+        Label paiseTekst = new Label("Loo uus eesmärk");
+        juur.getChildren().add(paiseTekst);
+
+        Label eesmargiSilt = new Label("Uus eesmärk:");
+        TextField eesmargiVali = new TextField();
+
+        juur.getChildren().addAll(eesmargiSilt, eesmargiVali);
+
+        Button edasiNupp = new Button("Loo uus eesmärk:");
+        edasiNupp.setOnAction(actionEvent -> {
+                int eesmarkID = andmeHaldur.getAndmebaas().lisaUusEesmark(eesmargiVali.getText(), andmeHaldur.getKasutajaID());
+                valikud.add(new Eesmark(eesmarkID, eesmargiVali.getText(), false));
+        });
+
+        Button tagasi = new Button("Tagasi");
+        tagasi.setOnAction(actionEvent -> {
+            ((Stage) juur.getScene().getWindow()).close();
+            eesmarkideUI(tagasi.getScene(), tagasi.getScene().getWindow(), andmeHaldur, valikud);
+        });
+        juur.getChildren().addAll(edasiNupp, tagasi);
+
+        Scene stseen = new Scene(juur);
+        stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Teema.css");
+
+        return stseen;
     }
 }

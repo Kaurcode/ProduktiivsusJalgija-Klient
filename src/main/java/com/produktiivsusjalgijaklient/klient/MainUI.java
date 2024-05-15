@@ -110,6 +110,14 @@ public class MainUI extends Application {
         VBox juur = new VBox();
 
         Button valiEesmark = new Button("Ok");
+        valiEesmark.setOnAction(actionEvent -> {
+            Eesmark valitudeesmark = valikuVaade.getSelectionModel().getSelectedItem();
+            try {
+                ulesanneteUI(valiEesmark.getScene(), valiEesmark.getScene().getWindow(), andmeHaldur, valitudeesmark, finalAndmed);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        });
 
         Button looEesmark = new Button("Loo uus eesmärk");
         looEesmark.setOnAction(actionEvent -> {
@@ -171,7 +179,6 @@ public class MainUI extends Application {
 
         EventHandler<KeyEvent> nupuVajutus = keyEvent -> {
             if (keyEvent.getCode() == KeyCode.ENTER) {
-                if (fokuseeritudVali[0] == tekstiValjad.length - 1) saadaAndmed(parooliVali.getText());
                 fokuseeritudVali[0]++;
                 fokuseeritudVali[0] = Math.min(fokuseeritudVali[0], tekstiValjad.length - 1);
                 keyEvent.consume();
@@ -294,7 +301,6 @@ public class MainUI extends Application {
 
         EventHandler<KeyEvent> nupuVajutus = keyEvent -> {
             if (keyEvent.getCode() == KeyCode.ENTER) {
-                if (fokuseeritudVali[0] == tekstiValjad.length - 1) saadaAndmed(parooliVali.getText());
                 fokuseeritudVali[0]++;
                 fokuseeritudVali[0] = Math.min(fokuseeritudVali[0], tekstiValjad.length - 1);
                 keyEvent.consume();
@@ -328,9 +334,10 @@ public class MainUI extends Application {
 
         Button edasiNupp = new Button("Loo uus kasutaja");
         edasiNupp.setOnAction(actionEvent -> {
-            try {
-                switch (andmeHaldur.looKasutaja(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray())) {
-                    case MITTEUNIKAALNE_KASUTAJANIMI -> System.out.println("Kasutajanimi peab olema unikaalne");
+            if (!kasutajaNimeVali.getText().isEmpty() || !parooliVali.getText().isEmpty()) {
+                try {
+                    switch (andmeHaldur.looKasutaja(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray())) {
+                        case MITTEUNIKAALNE_KASUTAJANIMI -> System.out.println("Kasutajanimi peab olema unikaalne");
                     case KASUTAJA_LOODUD -> System.out.println("Kasutaja loodud");
                 }
             } catch (IOException e) {
@@ -342,9 +349,9 @@ public class MainUI extends Application {
                 }
                 veateade.setScene(vigaUI("Viga kasutaja loomisel",
                         e.getMessage(), false));
-                veateade.show();
-            } catch (SQLException e) {
-                Stage veateade = new Stage();
+                    veateade.show();
+                } catch (SQLException e) {
+                    Stage veateade = new Stage();
                 try {
                     andmeHaldur.kirjutaErind(e, "Viga kasutaja lisamisel andmebaasi");
                 } catch (IOException viga) {
@@ -353,6 +360,11 @@ public class MainUI extends Application {
                 veateade.setScene(vigaUI("Viga kasutaja lisamisel andmebaasi",
                         e.getMessage(), false));
                 veateade.show();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                System.out.println("Väljad ei tohi olla tühjad");
             }
         });
 
@@ -428,9 +440,15 @@ public class MainUI extends Application {
             uusLava.show();
     }
 
-    private void ulesanneteUI(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Ulesanne> ulesanded) {
-        //Scene uus = kuvaeesmargid(andmeHaldur, ulesanded, 2);
-        //Vaja saada eesmargi ID
+    private void ulesanneteUI(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, Eesmark eesmark, ArrayList<Eesmark> andmed) throws SQLException {
+        Scene uus = kuvaulesanded(andmeHaldur, eesmark, andmed);
+        Stage peaLava = (Stage) omanik;
+        peaLava.close();
+        Stage uusLava = new Stage();
+        uusLava.setScene(uus);
+        uusLava.initOwner(omanik);
+        uusLava.initModality(Modality.WINDOW_MODAL);
+        uusLava.show();
     }
 
     private Scene kuvaulesanded(LokaalneAndmeHaldur andmeHaldur, ArrayList<Ulesanne> andmed, int eesmargiID) {
@@ -477,12 +495,19 @@ public class MainUI extends Application {
         Button valiUlesanne = new Button("Ok");
 
         Button looUlesanne = new Button("Loo uus ülesanne");
+        looUlesanne.setOnAction(actionEvent -> {
+            ((Stage) juur.getScene().getWindow()).close();
+            uusUlesanne(looUlesanne.getScene(), looUlesanne.getScene().getWindow(), andmeHaldur, finalAndmed, andmed, eesmark);
+        });
 
         Button tagasi = new Button("Tagasi");
         tagasi.setOnAction(actionEvent -> {
             ((Stage) juur.getScene().getWindow()).close();
-            //kuvaAndmed(andmeHaldur, andmeHaldur.tagastaEesmargid(1))
-            //Vaja lahendust kasutaja ID säilitamiseks
+            try {
+                eesmarkideUI(tagasi.getScene(), tagasi.getScene().getWindow(), andmeHaldur, andmed);
+            } catch (SQLException | IOException e) {
+                throw new RuntimeException(e);
+            }
         });
 
         juur.getChildren().addAll(valikuVaade, valiUlesanne, looUlesanne, tagasi);
@@ -530,18 +555,93 @@ public class MainUI extends Application {
 
         Button edasiNupp = new Button("Loo uus eesmärk:");
         edasiNupp.setOnAction(actionEvent -> {
-            try {
-                int eesmarkID = andmeHaldur.getAndmebaas().lisaUusEesmark(eesmargiVali.getText(), andmeHaldur.getKasutajaID());
+            if (!eesmargiVali.getText().isEmpty()) {
+                int eesmarkID = 0;
+                try {
+                    eesmarkID = andmeHaldur.getAndmebaas().lisaUusEesmark(eesmargiVali.getText(), andmeHaldur.getKasutajaID());
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
                 valikud.add(new Eesmark(eesmarkID, eesmargiVali.getText(), false));
-            } catch (SQLException viga) {
-                //TODO
+            } else {
+                System.out.println("Tühi väli ei sobi");
             }
         });
 
         Button tagasi = new Button("Tagasi");
         tagasi.setOnAction(actionEvent -> {
             ((Stage) juur.getScene().getWindow()).close();
-            eesmarkideUI(tagasi.getScene(), tagasi.getScene().getWindow(), andmeHaldur, valikud);
+            try {
+                eesmarkideUI(tagasi.getScene(), tagasi.getScene().getWindow(), andmeHaldur, valikud);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        juur.getChildren().addAll(edasiNupp, tagasi);
+
+        Scene stseen = new Scene(juur);
+        stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Teema.css");
+
+        return stseen;
+    }
+
+    private void uusUlesanne(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Ulesanne> valikud, ArrayList<Eesmark> eesmargid, Eesmark eesmark) {
+
+        Scene uus = uusUlesanneUI(andmeHaldur, valikud, eesmargid, eesmark);
+
+        Stage peaLava = (Stage) omanik;
+        peaLava.close();
+
+        Stage uusLava = new Stage();
+        uusLava.setScene(uus);
+        uusLava.initOwner(omanik);
+        uusLava.initModality(Modality.WINDOW_MODAL);
+        uusLava.show();
+    }
+
+    private Scene uusUlesanneUI(LokaalneAndmeHaldur andmeHaldur, ArrayList<Ulesanne> valikud, ArrayList<Eesmark> eesmargid, Eesmark eesmark) {
+        VBox juur = new VBox();
+
+        juur.setPadding(new Insets(15));
+        juur.setSpacing(20);
+        juur.setAlignment(Pos.CENTER);
+
+        juur.setPrefHeight(200);
+        juur.setPrefWidth(500);
+
+        Label paiseTekst = new Label("Loo uus ülesanne");
+        juur.getChildren().add(paiseTekst);
+
+        Label ulesanneSilt = new Label("Uus ülesanne:");
+        TextField ulesanneVali = new TextField();
+
+        juur.getChildren().addAll(ulesanneSilt, ulesanneVali);
+
+        Button edasiNupp = new Button("Loo uus ülesanne:");
+        edasiNupp.setOnAction(actionEvent -> {
+            if (!ulesanneVali.getText().isEmpty()) {
+                int ülesandeID = 0;
+                try {
+                    ülesandeID = andmeHaldur.getAndmebaas().lisaUusUlesanne(ulesanneVali.getText(), eesmark.getEesmargiID());
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+                valikud.add(new Ulesanne(ülesandeID, ulesanneVali.getText()));
+            } else {
+                System.out.println("Tühi väli ei sobi");
+            }
+        });
+
+        Button tagasi = new Button("Tagasi");
+        tagasi.setOnAction(actionEvent -> {
+            ((Stage) juur.getScene().getWindow()).close();
+            try {
+                ulesanneteUI(tagasi.getScene(), tagasi.getScene().getWindow(), andmeHaldur, eesmark, eesmargid);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         });
         juur.getChildren().addAll(edasiNupp, tagasi);
 

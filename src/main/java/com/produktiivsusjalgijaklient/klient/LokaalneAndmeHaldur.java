@@ -1,17 +1,25 @@
 package com.produktiivsusjalgijaklient.klient;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
     private Andmebaas andmebaas;
+    private Logija logija;
 
-    public LokaalneAndmeHaldur(String andmebaasiNimi) throws SQLException {
+    public LokaalneAndmeHaldur(String andmebaasiNimi) throws SQLException, IOException {
+        logija = new Logija();
         try {
             this.andmebaas = new Andmebaas(andmebaasiNimi);
         } catch (SQLException viga) {
+            logija.kirjutaErind(viga, "Andmebaasi klassi loomine");
             throw viga;
         }
+    }
+
+    public void kirjutaLogi(String logi) throws IOException {
+        logija.kirjutaLogi(logi);
     }
 
     @Override
@@ -46,5 +54,6 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
         catch (SQLException viga) {
             throw viga;
         }
+        logija.close();
     }
 }

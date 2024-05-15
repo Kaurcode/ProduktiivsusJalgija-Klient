@@ -15,6 +15,7 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception {
         try (LokaalneAndmeHaldur andmeHaldur = new LokaalneAndmeHaldur("produktiivsusjalgija")) {
             System.out.println(andmeHaldur.logiSisse("Kaur", "TestParool".toCharArray()));
+            andmeHaldur.kirjutaLogi("Test");
         }
     }
 }

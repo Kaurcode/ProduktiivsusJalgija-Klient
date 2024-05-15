@@ -28,12 +28,23 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
     }
 
     @Override
-    public kasutajaLoomisOnnestumus looKasutaja(String kasutajaNimi, char[] parool) throws SQLException {
-        if (andmebaas.kasKasutajanimiOlemas(kasutajaNimi)) return kasutajaLoomisOnnestumus.MITTEUNIKAALNE_KASUTAJANIMI;
+    public kasutajaLoomisOnnestumus looKasutaja(String kasutajaNimi, char[] parool) throws IOException, SQLException {
+        try {
+            if (andmebaas.kasKasutajanimiOlemas(kasutajaNimi))
+                return kasutajaLoomisOnnestumus.MITTEUNIKAALNE_KASUTAJANIMI;
+        } catch (SQLException viga) {
+            logija.kirjutaErind(viga, "Kasutajanime unikaalsuse kontroll");
+            throw viga;
+        }
 
         String sool = ParooliRasija.genereeriSool();
         String parooliRasi = ParooliRasija.looParooliRasi(parool, sool);
-        andmebaas.lisaUusKasutaja(kasutajaNimi, sool, parooliRasi);
+        try {
+            andmebaas.lisaUusKasutaja(kasutajaNimi, sool, parooliRasi);
+        } catch (SQLException viga) {
+            logija.kirjutaErind(viga, "Uue kasutaja andmebaasi lisamine");
+            throw viga;
+        }
         return kasutajaLoomisOnnestumus.KASUTAJA_LOODUD;
     }
 
@@ -55,12 +66,23 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
     }
 
     @Override
-    public ArrayList<Ulesanne> tagastaUlesanded(int eesmargiID) {
-        return andmebaas.tagastaUlesanneteOlemid(eesmargiID);
+    public ArrayList<Ulesanne> tagastaUlesanded(int eesmargiID) throws SQLException, IOException {
+        try {
+            return andmebaas.tagastaUlesanneteOlemid(eesmargiID);
+        } catch (SQLException viga) {
+            logija.kirjutaErind(viga, "Ülesannete olemite tagastamine");
+            throw viga;
+        }
     }
 
-    public ArrayList<Eesmark> tagastaEesmargid(int kasutajaID) {
-        ArrayList<Eesmark> eesmargid = andmebaas.tagastaEesmarkideOlemid(kasutajaID);
+    public ArrayList<Eesmark> tagastaEesmargid(int kasutajaID) throws SQLException, IOException {
+        ArrayList<Eesmark> eesmargid;
+        try {
+            eesmargid = andmebaas.tagastaEesmarkideOlemid(kasutajaID);
+        } catch (SQLException viga) {
+            logija.kirjutaErind(viga, "Eesmärkide olemite tagastamine");
+            throw viga;
+        }
         for (Eesmark eesmark : eesmargid) {
             eesmark.setUlesanded(tagastaUlesanded(eesmark.getEesmargiID()));
         }

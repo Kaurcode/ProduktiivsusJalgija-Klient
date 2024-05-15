@@ -27,6 +27,14 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
         logija.kirjutaLogi(logi);
     }
 
+    public void kirjutaErind(SQLException erind, String teade) throws IOException {
+        logija.kirjutaErind(erind, teade);
+    }
+
+    public void kirjutaErind(IOException erind, String teade) throws IOException {
+        logija.kirjutaErind(erind, teade);
+    }
+
     @Override
     public kasutajaLoomisOnnestumus looKasutaja(String kasutajaNimi, char[] parool) throws IOException, SQLException {
         try {
@@ -87,6 +95,10 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
             eesmark.setUlesanded(tagastaUlesanded(eesmark.getEesmargiID()));
         }
         return eesmargid;
+    }
+
+    public int getKasutajaID() {
+        return kasutajaID;
     }
 
     @Override

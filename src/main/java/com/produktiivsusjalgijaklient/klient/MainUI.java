@@ -25,6 +25,8 @@ import java.util.ArrayList;
 
 public class MainUI extends Application {
 
+    private LokaalneAndmeHaldur andmeHaldur;
+
 
     public static void main(String[] args) {
         /*try (LokaalneAndmeHaldur andmeHaldur = new LokaalneAndmeHaldur("produktiivsusjalgija")) {
@@ -37,17 +39,27 @@ public class MainUI extends Application {
     }
 
     @Override
-    public void start(Stage primaryStage) throws SQLException, IOException {
+    public void start(Stage primaryStage) {
         Stage peaLava = new Stage();
         try {
-            LokaalneAndmeHaldur andmeHaldur = new LokaalneAndmeHaldur("produktiivsusjalgija");
+            andmeHaldur = new LokaalneAndmeHaldur("produktiivsusjalgija");
             ArrayList<Eesmark> andmed = new ArrayList<>();
             //ObservableList<Eesmark> valikud = FXCollections.observableArrayList(andmed);
             peaLava.setScene(sisselogimisUI(andmeHaldur, andmed));
             peaLava.setTitle("Sisselogimine");
             peaLava.show();
         } catch (IOException viga) {
-            System.out.println("Viga graafika loomisel");
+            Stage veateade = new Stage();
+            veateade.setScene(vigaUI("Viga graafika loomisel",
+                    viga.getMessage(), true));
+            veateade.show();
+        } catch (SQLException viga) {
+            Stage veateade = new Stage();
+            veateade.setScene(vigaUI("Viga programmi alustamisel",
+                    viga.getMessage(), true));
+            veateade.show();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
         /*ArrayList<String> andmed = new ArrayList<>(Arrays.asList("kasutaja", "postgre", "sql", "hannes", "kaur", "kaur2", "kaur3"));
         ObservableList<String> valikudNaidatuna = FXCollections.observableArrayList(andmed);
@@ -58,7 +70,19 @@ public class MainUI extends Application {
 
     private Scene kuvaAndmed(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> andmed) {
         ArrayList<Eesmark> finalAndmed = andmed;
-        andmed = andmeHaldur.tagastaEesmargid(andmeHaldur.getKasutajaID());
+        try {
+            andmed = andmeHaldur.tagastaEesmargid(andmeHaldur.getKasutajaID());
+        } catch (SQLException viga) {
+            Stage veateade = new Stage();
+            veateade.setScene(vigaUI("Viga andmebaasist eesmärkide tagastamisel",
+                    viga.getMessage(), false));
+            veateade.show();
+        } catch (IOException viga) {
+            Stage veateade = new Stage();
+            veateade.setScene(vigaUI("Viga logifaili kirjutamisel (andmebaasist eesmärkide tagastamine)",
+                    viga.getMessage(), false));
+            veateade.show();
+        }
         ObservableList<Eesmark> valikud = FXCollections.observableArrayList(andmed);
         ListView<Eesmark> valikuVaade = new ListView<>(valikud);
 
@@ -96,11 +120,7 @@ public class MainUI extends Application {
         Button tagasi = new Button("Tagasi");
         tagasi.setOnAction(actionEvent -> {
             ((Stage) juur.getScene().getWindow()).close();
-            try {
-                algneStseen(andmeHaldur, finalAndmed);
-            } catch (IOException | SQLException e) {
-                System.out.println("Probleem ekraani sulgemisel");
-            }
+            algneStseen(andmeHaldur, finalAndmed);
         });
 
         juur.getChildren().addAll(valikuVaade, valiEesmark, looEesmark, tagasi);
@@ -118,7 +138,7 @@ public class MainUI extends Application {
         // TODO
     }
 
-    private Scene sisselogimisUI(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) throws IOException, SQLException {
+    private Scene sisselogimisUI(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) {
         VBox juur = new VBox();
 
         juur.setPadding(new Insets(15));
@@ -184,29 +204,40 @@ public class MainUI extends Application {
         juur.getChildren().add(infoSisend);
 
         Button edasiNupp = new Button("Edasi");
-        System.out.println(andmeHaldur.logiSisse(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray()));
         edasiNupp.setOnAction(actionEvent -> {
             try {
-                System.out.println(andmeHaldur.logiSisse(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray()));
-                if (andmeHaldur.logiSisse(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray()) == AndmeHaldur.autentimisOnnestumus.AUTENDITUD) {
-                    eesmarkideUI(edasiNupp.getScene(), edasiNupp.getScene().getWindow(), andmeHaldur, valikud);
-                } else if (andmeHaldur.logiSisse(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray()) == AndmeHaldur.autentimisOnnestumus.VALE_KASUTAJANIMI) {
-                    System.out.println("Kasutajanimi on vale");
-                } else {
-                    System.out.println("Parool on vale");
+                AndmeHaldur.autentimisOnnestumus autentimisOnnestumus = andmeHaldur.logiSisse(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray());
+                switch (autentimisOnnestumus) {
+                    case AUTENDITUD -> eesmarkideUI(edasiNupp.getScene(), edasiNupp.getScene().getWindow(), andmeHaldur, valikud);
+                    case VALE_KASUTAJANIMI -> System.out.println("Kasutajanimi on vale");
+                    case VALE_PAROOL -> System.out.println("Parool on vale");
                 }
-            } catch (SQLException | IOException e) {
-                System.out.println("Probleem sisse logimisel");
+            } catch (IOException e) {
+                Stage veateade = new Stage();
+                try {
+                    andmeHaldur.kirjutaErind(e, "Probleem sisselogimisel");
+                } catch (IOException viga) {
+                    throw new RuntimeException(viga);
+                }
+                veateade.setScene(vigaUI("Probleem sisselogimisel",
+                        e.getMessage(), false));
+                veateade.show();
+            } catch (SQLException e) {
+                Stage veateade = new Stage();
+                try {
+                    andmeHaldur.kirjutaErind(e, "Probleem sisselogimisel");
+                } catch (IOException viga) {
+                    throw new RuntimeException(viga);
+                }
+                veateade.setScene(vigaUI("Probleem sisselogimisel",
+                        e.getMessage(), false));
+                veateade.show();
             }
         });
 
         Button lookasutajaNupp = new Button("Loo uus kasutaja");
         lookasutajaNupp.setOnAction(actionEvent -> {
-            try {
-                looUusKasutaja(lookasutajaNupp.getScene(), lookasutajaNupp.getScene().getWindow(), andmeHaldur, valikud);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            looUusKasutaja(lookasutajaNupp.getScene(), lookasutajaNupp.getScene().getWindow(), andmeHaldur, valikud);
         });
 
         juur.getChildren().addAll(edasiNupp, lookasutajaNupp);
@@ -216,7 +247,7 @@ public class MainUI extends Application {
         return stseen;
     }
 
-    private void looUusKasutaja(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) throws IOException {
+    private void looUusKasutaja(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) {
 
         Scene uus = uueKasutajaUI(eelmine, omanik, andmeHaldur, valikud);
 
@@ -230,7 +261,7 @@ public class MainUI extends Application {
         uusLava.show();
     }
 
-    private Scene uueKasutajaUI(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) throws IOException {
+    private Scene uueKasutajaUI(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) {
         VBox juur = new VBox();
 
         juur.setPadding(new Insets(15));
@@ -298,26 +329,37 @@ public class MainUI extends Application {
         Button edasiNupp = new Button("Loo uus kasutaja");
         edasiNupp.setOnAction(actionEvent -> {
             try {
-                if (andmeHaldur.looKasutaja(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray()) == AndmeHaldur.kasutajaLoomisOnnestumus.MITTEUNIKAALNE_KASUTAJANIMI) {
-                    System.out.println("Kasutajanimi peab olema unikaalne");
-                } else {
-                    System.out.println(andmeHaldur.looKasutaja(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray()));
+                switch (andmeHaldur.looKasutaja(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray())) {
+                    case MITTEUNIKAALNE_KASUTAJANIMI -> System.out.println("Kasutajanimi peab olema unikaalne");
+                    case KASUTAJA_LOODUD -> System.out.println("Kasutaja loodud");
                 }
+            } catch (IOException e) {
+                Stage veateade = new Stage();
+                try {
+                    andmeHaldur.kirjutaErind(e, "Viga kasutaja loomisel");
+                } catch (IOException viga) {
+                    throw new RuntimeException(viga);
+                }
+                veateade.setScene(vigaUI("Viga kasutaja loomisel",
+                        e.getMessage(), false));
+                veateade.show();
             } catch (SQLException e) {
-                System.out.println("Viga kasutajatega");
+                Stage veateade = new Stage();
+                try {
+                    andmeHaldur.kirjutaErind(e, "Viga kasutaja lisamisel andmebaasi");
+                } catch (IOException viga) {
+                    throw new RuntimeException(viga);
+                }
+                veateade.setScene(vigaUI("Viga kasutaja lisamisel andmebaasi",
+                        e.getMessage(), false));
+                veateade.show();
             }
         });
 
         Button tagasi = new Button("Tagasi");
         tagasi.setOnAction(actionEvent -> {
             ((Stage) juur.getScene().getWindow()).close();
-            try {
-                algneStseen(andmeHaldur, valikud);
-            } catch (IOException e) {
-                System.out.println("Probleem ekraani sulgemisel");
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
+            algneStseen(andmeHaldur, valikud);
         });
         juur.getChildren().addAll(edasiNupp, tagasi);
 
@@ -360,7 +402,7 @@ public class MainUI extends Application {
         uusLava.show();
     }
 
-    private void algneStseen(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) throws IOException, SQLException {
+    private void algneStseen(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) {
         Stage peaLava = new Stage();
         Scene algusStseen = kuvaAlgne(andmeHaldur, valikud);
         peaLava.setScene(algusStseen);
@@ -368,7 +410,7 @@ public class MainUI extends Application {
         peaLava.show();
     }
 
-    private Scene kuvaAlgne(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) throws IOException, SQLException {
+    private Scene kuvaAlgne(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) {
         return sisselogimisUI(andmeHaldur, valikud);
     }
 
@@ -393,7 +435,19 @@ public class MainUI extends Application {
 
     private Scene kuvaulesanded(LokaalneAndmeHaldur andmeHaldur, ArrayList<Ulesanne> andmed, int eesmargiID) {
         ArrayList<Ulesanne> finalAndmed = andmed;
-        andmed = andmeHaldur.getAndmebaas().tagastaUlesanneteOlemid(eesmargiID);
+        try {
+            andmed = andmeHaldur.getAndmebaas().tagastaUlesanneteOlemid(eesmargiID);
+        } catch (SQLException viga) {
+            Stage veateade = new Stage();
+            try {
+                andmeHaldur.kirjutaErind(viga, "Viga ulesanneteolemite tagastamisel");
+            } catch (IOException logimisViga) {
+                throw new RuntimeException(viga);
+            }
+            veateade.setScene(vigaUI("Viga andmebaasist ulesanneteolemite tagastamisel",
+                    viga.getMessage(), false));
+            veateade.show();
+        }
         ObservableList<Ulesanne> valikud = FXCollections.observableArrayList(andmed);
         ListView<Ulesanne> valikuVaade = new ListView<>();
 
@@ -476,8 +530,12 @@ public class MainUI extends Application {
 
         Button edasiNupp = new Button("Loo uus eesmärk:");
         edasiNupp.setOnAction(actionEvent -> {
+            try {
                 int eesmarkID = andmeHaldur.getAndmebaas().lisaUusEesmark(eesmargiVali.getText(), andmeHaldur.getKasutajaID());
                 valikud.add(new Eesmark(eesmarkID, eesmargiVali.getText(), false));
+            } catch (SQLException viga) {
+                //TODO
+            }
         });
 
         Button tagasi = new Button("Tagasi");
@@ -491,5 +549,49 @@ public class MainUI extends Application {
         stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Teema.css");
 
         return stseen;
+    }
+
+    public static Scene vigaUI(String paiseTekst, String veateateTekst, boolean fataalne) {
+        VBox juur = new VBox();
+
+        juur.setPadding(new Insets(15));
+        juur.setSpacing(20);
+        juur.setAlignment(Pos.CENTER);
+
+        Label pais = new Label(paiseTekst);
+        juur.getChildren().add(pais);
+
+        Label veateade = new Label(veateateTekst);
+        juur.getChildren().add(veateade);
+
+        Button nupp = new Button(fataalne ? "Sulge" : "Ok");
+        nupp.setOnMouseClicked(mouseEvent -> {
+            Stage veaAken = (Stage) nupp.getScene().getWindow();
+            veaAken.close();
+        });
+
+        EventHandler<KeyEvent> enter = keyEvent -> {
+            if (keyEvent.getCode() == KeyCode.ENTER) {
+                Stage veaAken = (Stage) nupp.getScene().getWindow();
+                veaAken.close();
+                keyEvent.consume();
+            }
+        };
+
+        nupp.setOnKeyPressed(enter);
+
+        juur.getChildren().add(nupp);
+
+        Scene stseen = new Scene(juur);
+        stseen.getStylesheets().add("produktiivsustracker/server/Teema.css");
+        return stseen;
+    }
+
+    @Override
+    public void stop() throws Exception {
+        if (andmeHaldur != null) {
+            andmeHaldur.close();
+        }
+        super.stop();
     }
 }

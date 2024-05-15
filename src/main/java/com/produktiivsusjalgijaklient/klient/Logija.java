@@ -30,6 +30,10 @@ public class Logija implements AutoCloseable {
         kirjutaLogi("SQL viga - %s - %s".formatted(selgitus, erind.getMessage()));
     }
 
+    public void kirjutaErind(IOException erind, String selgitus) throws IOException {
+        kirjutaLogi("Input-Output viga - %s - %s".formatted(selgitus, erind.getMessage()));
+    }
+
     @Override
     public void close() throws IOException {
         failiKirjutaja.close();

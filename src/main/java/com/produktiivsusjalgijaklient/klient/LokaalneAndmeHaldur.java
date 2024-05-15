@@ -89,6 +89,10 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
         return eesmargid;
     }
 
+    public int getKasutajaID() {
+        return kasutajaID;
+    }
+
     @Override
     public void close() throws Exception {
         try {

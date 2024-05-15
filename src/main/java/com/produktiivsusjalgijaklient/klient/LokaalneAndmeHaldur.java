@@ -15,13 +15,22 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
     }
 
     @Override
-    public kasutajaLoomisOnnestumus looKasutaja(String kasutajaNimi, String parool) {
-        return null;
+    public kasutajaLoomisOnnestumus looKasutaja(String kasutajaNimi, char[] parool) throws SQLException {
+        if (andmebaas.kasKasutajanimiOlemas(kasutajaNimi)) return kasutajaLoomisOnnestumus.MITTEUNIKAALNE_KASUTAJANIMI;
+
+        String sool = ParooliRasija.genereeriSool();
+        String parooliRasi = ParooliRasija.looParooliRasi(parool, sool);
+        andmebaas.lisaUusKasutaja(kasutajaNimi, sool, parooliRasi);
+        return kasutajaLoomisOnnestumus.KASUTAJA_LOODUD;
     }
 
     @Override
-    public autentimisOnnestumus logiSisse(String kasutajaNimi, String parool) {
-        return null;
+    public autentimisOnnestumus logiSisse(String kasutajaNimi, char[] parool) throws SQLException {
+        if (!andmebaas.kasKasutajanimiOlemas(kasutajaNimi)) return autentimisOnnestumus.VALE_KASUTAJANIMI;
+        String[] kasutajaAndmed = andmebaas.tagastaKasutajaSoolJaRasi(kasutajaNimi);
+        String parooliRasi = ParooliRasija.looParooliRasi(parool, kasutajaAndmed[0]);
+        if (parooliRasi.contentEquals(kasutajaAndmed[1])) return autentimisOnnestumus.AUTENDITUD;
+        return autentimisOnnestumus.VALE_PAROOL;
     }
 
     @Override

@@ -136,7 +136,7 @@ public class Andmebaas implements AutoCloseable {
         }
     }
 
-    public int lisaUusKasutaja(String kasutajaNimi, char[] parooli_sool, char[] parooli_rasi) {
+    public int lisaUusKasutaja(String kasutajaNimi, String parooli_sool, String parooli_rasi) {
         final String lisaUusKasutaja =
                 "INSERT INTO kasutajad (nimi, parooli_sool, parooli_rasi) " +
                         "VALUES (?, ?, ?)";
@@ -145,14 +145,52 @@ public class Andmebaas implements AutoCloseable {
         try (PreparedStatement lisaUusKasutajaLause =
                      andmebaas.prepareStatement(lisaUusKasutaja, PreparedStatement.RETURN_GENERATED_KEYS)) {
             lisaUusKasutajaLause.setString(1, kasutajaNimi);
-            lisaUusKasutajaLause.setString(2, new String(parooli_sool));
-            lisaUusKasutajaLause.setString(3, new String(parooli_rasi));
+            lisaUusKasutajaLause.setString(2, parooli_sool);
+            lisaUusKasutajaLause.setString(3, parooli_rasi);
             kasutajaID = kontrolliLisatudOlemit(lisaUusKasutajaLause, "Kasutaja");
         } catch (SQLException viga) {
             System.out.println("Kasutaja olemi loomisel tekkis viga: " + viga.getMessage());
         }
 
         return kasutajaID;
+    }
+
+    public boolean kasKasutajanimiOlemas(String kasutajaNimi) throws SQLException {
+        final String kontrolliUnikaalsust =
+                "SELECT COUNT(*) AS kasutajate_arv " +
+                        "FROM kasutajad " +
+                        "WHERE kasutajad.nimi=?";
+
+        try (PreparedStatement kontrolliUnikaalsustLause = andmebaas.prepareStatement(kontrolliUnikaalsust)) {
+            kontrolliUnikaalsustLause.setString(1, kasutajaNimi);
+            ResultSet tagastus = kontrolliUnikaalsustLause.executeQuery();
+            tagastus.next();
+            int kasutajateArv = tagastus.getInt("kasutajate_arv");
+            return kasutajateArv > 0;
+        } catch (SQLException viga) {
+            //TODO
+            throw viga;
+        }
+    }
+
+    public String[] tagastaKasutajaSoolJaRasi(String kasutajaNimi) throws SQLException {
+        final String tagastaKasutajaSoolJaRasi =
+                "SELECT parooli_sool, parooli_rasi " +
+                        "FROM kasutajad " +
+                        "WHERE kasutajad.nimi=?";
+
+        try (PreparedStatement tagastaKasutajaSoolJaRasiLause = andmebaas.prepareStatement(tagastaKasutajaSoolJaRasi)) {
+            tagastaKasutajaSoolJaRasiLause.setString(1, kasutajaNimi);
+            ResultSet tagastus = tagastaKasutajaSoolJaRasiLause.executeQuery();
+            String[] kasutajaAndmed = new String[2];
+            tagastus.next();
+            kasutajaAndmed[0] = tagastus.getString("parooli_sool");
+            kasutajaAndmed[1] = tagastus.getString("parooli_rasi");
+            return kasutajaAndmed;
+        } catch (SQLException viga) {
+            // TODO
+            throw viga;
+        }
     }
 
     public int lisaUusEesmark(String eesmargiNimi, int kasutajaID) {

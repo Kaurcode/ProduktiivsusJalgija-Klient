@@ -1,0 +1,10 @@
+.root {
+    -fx-background-color: rgb(255, 255, 255);
+}
+
+.lopeta-nupp {
+    -fx-font-size: 14px;
+    -fx-padding: 23 40px;
+    -fx-border-insets: 15px;
+    -fx-background-insets: 15px;
+}

@@ -122,10 +122,6 @@ public class MainUI extends Application {
         return stseen;
     }
 
-    private void saadaAndmed(String andmed) {
-        // TODO
-    }
-
     private Scene sisselogimisUI(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) throws IOException, SQLException {
         VBox juur = new VBox();
 
@@ -159,7 +155,6 @@ public class MainUI extends Application {
 
         EventHandler<KeyEvent> nupuVajutus = keyEvent -> {
             if (keyEvent.getCode() == KeyCode.ENTER) {
-                if (fokuseeritudVali[0] == tekstiValjad.length - 1) saadaAndmed(parooliVali.getText());
                 fokuseeritudVali[0]++;
                 fokuseeritudVali[0] = Math.min(fokuseeritudVali[0], tekstiValjad.length - 1);
                 keyEvent.consume();
@@ -271,7 +266,6 @@ public class MainUI extends Application {
 
         EventHandler<KeyEvent> nupuVajutus = keyEvent -> {
             if (keyEvent.getCode() == KeyCode.ENTER) {
-                if (fokuseeritudVali[0] == tekstiValjad.length - 1) saadaAndmed(parooliVali.getText());
                 fokuseeritudVali[0]++;
                 fokuseeritudVali[0] = Math.min(fokuseeritudVali[0], tekstiValjad.length - 1);
                 keyEvent.consume();
@@ -405,15 +399,17 @@ public class MainUI extends Application {
         Button valiUlesanne = new Button("Ok");
 
         Button looUlesanne = new Button("Loo uus ülesanne");
+        looUlesanne.setOnAction(actionEvent -> {
+            ((Stage) juur.getScene().getWindow()).close();
+            uusUlesanne(looUlesanne.getScene(), looUlesanne.getScene().getWindow(), andmeHaldur, finalAndmed, andmed, eesmark);
+        });
 
         Button tagasi = new Button("Tagasi");
         tagasi.setOnAction(actionEvent -> {
             ((Stage) juur.getScene().getWindow()).close();
             try {
                 eesmarkideUI(tagasi.getScene(), tagasi.getScene().getWindow(), andmeHaldur, andmed);
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            } catch (IOException e) {
+            } catch (SQLException | IOException e) {
                 throw new RuntimeException(e);
             }
         });
@@ -480,6 +476,66 @@ public class MainUI extends Application {
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        juur.getChildren().addAll(edasiNupp, tagasi);
+
+        Scene stseen = new Scene(juur);
+        stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Teema.css");
+
+        return stseen;
+    }
+
+    private void uusUlesanne(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Ulesanne> valikud, ArrayList<Eesmark> eesmargid, Eesmark eesmark) {
+
+        Scene uus = uusUlesanneUI(andmeHaldur, valikud, eesmargid, eesmark);
+
+        Stage peaLava = (Stage) omanik;
+        peaLava.close();
+
+        Stage uusLava = new Stage();
+        uusLava.setScene(uus);
+        uusLava.initOwner(omanik);
+        uusLava.initModality(Modality.WINDOW_MODAL);
+        uusLava.show();
+    }
+
+    private Scene uusUlesanneUI(LokaalneAndmeHaldur andmeHaldur, ArrayList<Ulesanne> valikud, ArrayList<Eesmark> eesmargid, Eesmark eesmark) {
+        VBox juur = new VBox();
+
+        juur.setPadding(new Insets(15));
+        juur.setSpacing(20);
+        juur.setAlignment(Pos.CENTER);
+
+        juur.setPrefHeight(200);
+        juur.setPrefWidth(500);
+
+        Label paiseTekst = new Label("Loo uus ülesanne");
+        juur.getChildren().add(paiseTekst);
+
+        Label ulesanneSilt = new Label("Uus ülesanne:");
+        TextField ulesanneVali = new TextField();
+
+        juur.getChildren().addAll(ulesanneSilt, ulesanneVali);
+
+        Button edasiNupp = new Button("Loo uus ülesanne:");
+        edasiNupp.setOnAction(actionEvent -> {
+            int ülesandeID = 0;
+            try {
+                ülesandeID = andmeHaldur.getAndmebaas().lisaUusUlesanne(ulesanneVali.getText(), eesmark.getEesmargiID());
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+            valikud.add(new Ulesanne(ülesandeID, ulesanneVali.getText()));
+        });
+
+        Button tagasi = new Button("Tagasi");
+        tagasi.setOnAction(actionEvent -> {
+            ((Stage) juur.getScene().getWindow()).close();
+            try {
+                ulesanneteUI(tagasi.getScene(), tagasi.getScene().getWindow(), andmeHaldur, eesmark, eesmargid);
+            } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
         });

@@ -46,6 +46,14 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
         return andmebaas.tagastaUlesanneteOlemid(eesmargiID);
     }
 
+    public ArrayList<Eesmark> tagastaEesmargid(int kasutajaID) {
+        ArrayList<Eesmark> eesmargid = andmebaas.tagastaEesmarkideOlemid(kasutajaID);
+        for (Eesmark eesmark : eesmargid) {
+            eesmark.setUlesanded(tagastaUlesanded(eesmark.getEesmargiID()));
+        }
+        return eesmargid;
+    }
+
     @Override
     public void close() throws Exception {
         try {

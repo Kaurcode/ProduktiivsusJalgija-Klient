@@ -328,6 +328,39 @@ public class Andmebaas implements AutoCloseable {
         return ulesanded;
     }
 
+    public ArrayList<Eesmark> tagastaEesmarkideOlemid(int kasutajaID){
+        ArrayList<Eesmark> eesmargid = new ArrayList<Eesmark>();
+        final String tagastaEesmarkideOlemid =
+                "SELECT eesmark_id, eesmark_nimi, kas_tehtud, tahtaeg " +
+                        "FROM eesmargid " +
+                        "WHERE kasutaja_id = ?";
+
+        try (PreparedStatement tagastaEesmargidOlemidLause = andmebaas.prepareStatement(tagastaEesmarkideOlemid)) {
+            tagastaEesmargidOlemidLause.setInt(1, kasutajaID);
+
+            try (ResultSet tagastaOlemidLauseTulem = tagastaEesmargidOlemidLause.executeQuery()) {
+                while (tagastaOlemidLauseTulem.next()) {
+                    int ulesandeID = tagastaOlemidLauseTulem.getInt("eesmark_id");
+                    String ulesandeNimi = tagastaOlemidLauseTulem.getString("eesmark_nimi");
+                    boolean tehtud = tagastaOlemidLauseTulem.getBoolean("kas_tehtud");
+                    int aegEpochist = tagastaOlemidLauseTulem.getInt("tahtaeg");
+
+                    if (tagastaOlemidLauseTulem.wasNull()) {
+                        eesmargid.add(new Eesmark(ulesandeID, ulesandeNimi, tehtud));
+                    } else {
+                        eesmargid.add(new Eesmark(ulesandeID, ulesandeNimi, tehtud, new Timestamp(aegEpochist)));
+                    }
+                }
+            } catch (SQLException viga) {
+                System.out.println("Eesmarkide olemite tagastamisel tekkis viga: " + viga.getMessage());
+            }
+        } catch (SQLException viga) {
+            System.out.println("Eesmarkide olemite tagastamise lause käitamisel tekkis viga: " + viga.getMessage());
+        }
+
+        return eesmargid;
+    }
+
     @Override
     public void close() throws Exception {
         andmebaas.close();

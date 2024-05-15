@@ -360,8 +360,6 @@ public class MainUI extends Application {
                 veateade.setScene(vigaUI("Viga kasutaja lisamisel andmebaasi",
                         e.getMessage(), false));
                 veateade.show();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
                 }
             } else {
                 System.out.println("Väljad ei tohi olla tühjad");
@@ -571,13 +569,7 @@ public class MainUI extends Application {
         Button tagasi = new Button("Tagasi");
         tagasi.setOnAction(actionEvent -> {
             ((Stage) juur.getScene().getWindow()).close();
-            try {
-                eesmarkideUI(tagasi.getScene(), tagasi.getScene().getWindow(), andmeHaldur, valikud);
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            eesmarkideUI(tagasi.getScene(), tagasi.getScene().getWindow(), andmeHaldur, valikud);
         });
         juur.getChildren().addAll(edasiNupp, tagasi);
 

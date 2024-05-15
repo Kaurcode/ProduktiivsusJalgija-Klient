@@ -299,16 +299,20 @@ public class MainUI extends Application {
 
         Button edasiNupp = new Button("Loo uus kasutaja");
         edasiNupp.setOnAction(actionEvent -> {
-            try {
-                if (andmeHaldur.looKasutaja(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray()) == AndmeHaldur.kasutajaLoomisOnnestumus.MITTEUNIKAALNE_KASUTAJANIMI) {
-                    System.out.println("Kasutajanimi peab olema unikaalne");
-                } else {
-                    System.out.println(andmeHaldur.looKasutaja(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray()));
+            if (!kasutajaNimeVali.getText().isEmpty() || !parooliVali.getText().isEmpty()) {
+                try {
+                    if (andmeHaldur.looKasutaja(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray()) == AndmeHaldur.kasutajaLoomisOnnestumus.MITTEUNIKAALNE_KASUTAJANIMI) {
+                        System.out.println("Kasutajanimi peab olema unikaalne");
+                    } else {
+                        System.out.println(andmeHaldur.looKasutaja(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray()));
+                    }
+                } catch (SQLException e) {
+                    System.out.println("Viga kasutajatega");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
-            } catch (SQLException e) {
-                System.out.println("Viga kasutajatega");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            } else {
+                System.out.println("Väljad ei tohi olla tühjad");
             }
         });
 
@@ -459,13 +463,17 @@ public class MainUI extends Application {
 
         Button edasiNupp = new Button("Loo uus eesmärk:");
         edasiNupp.setOnAction(actionEvent -> {
-            int eesmarkID = 0;
-            try {
-                eesmarkID = andmeHaldur.getAndmebaas().lisaUusEesmark(eesmargiVali.getText(), andmeHaldur.getKasutajaID());
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
+            if (!eesmargiVali.getText().isEmpty()) {
+                int eesmarkID = 0;
+                try {
+                    eesmarkID = andmeHaldur.getAndmebaas().lisaUusEesmark(eesmargiVali.getText(), andmeHaldur.getKasutajaID());
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+                valikud.add(new Eesmark(eesmarkID, eesmargiVali.getText(), false));
+            } else {
+                System.out.println("Tühi väli ei sobi");
             }
-            valikud.add(new Eesmark(eesmarkID, eesmargiVali.getText(), false));
         });
 
         Button tagasi = new Button("Tagasi");
@@ -521,13 +529,17 @@ public class MainUI extends Application {
 
         Button edasiNupp = new Button("Loo uus ülesanne:");
         edasiNupp.setOnAction(actionEvent -> {
-            int ülesandeID = 0;
-            try {
-                ülesandeID = andmeHaldur.getAndmebaas().lisaUusUlesanne(ulesanneVali.getText(), eesmark.getEesmargiID());
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
+            if (!ulesanneVali.getText().isEmpty()) {
+                int ülesandeID = 0;
+                try {
+                    ülesandeID = andmeHaldur.getAndmebaas().lisaUusUlesanne(ulesanneVali.getText(), eesmark.getEesmargiID());
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+                valikud.add(new Ulesanne(ülesandeID, ulesanneVali.getText()));
+            } else {
+                System.out.println("Tühi väli ei sobi");
             }
-            valikud.add(new Ulesanne(ülesandeID, ulesanneVali.getText()));
         });
 
         Button tagasi = new Button("Tagasi");
@@ -546,6 +558,4 @@ public class MainUI extends Application {
 
         return stseen;
     }
-
-
 }

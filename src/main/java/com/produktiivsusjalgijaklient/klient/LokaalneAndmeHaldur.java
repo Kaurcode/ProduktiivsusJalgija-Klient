@@ -15,6 +15,7 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
         logija = new Logija();
         try {
             this.andmebaas = new Andmebaas(andmebaasiNimi);
+            logija.kirjutaLogi("Andmebaasiga ühendus loodud");
         } catch (SQLException viga) {
             logija.kirjutaErind(viga, "Andmebaasi klassi loomine");
             throw viga;
@@ -55,12 +56,16 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
             logija.kirjutaErind(viga, "Uue kasutaja andmebaasi lisamine");
             throw viga;
         }
+        logija.kirjutaLogi("Kasutaja loodud (nimi: %s)".formatted(kasutajaNimi));
         return kasutajaLoomisOnnestumus.KASUTAJA_LOODUD;
     }
 
     @Override
     public autentimisOnnestumus logiSisse(String kasutajaNimi, char[] parool) throws SQLException, IOException {
-        if (!andmebaas.kasKasutajanimiOlemas(kasutajaNimi)) return autentimisOnnestumus.VALE_KASUTAJANIMI;
+        if (!andmebaas.kasKasutajanimiOlemas(kasutajaNimi)) {
+            logija.kirjutaLogi("Sisselogimiseks kasutati vale kasutajanime (nimi: %s)".formatted(kasutajaNimi));
+            return autentimisOnnestumus.VALE_KASUTAJANIMI;
+        }
         String[] kasutajaAndmed = andmebaas.tagastaKasutajaSoolJaRasi(kasutajaNimi);
         String parooliRasi = ParooliRasija.looParooliRasi(parool, kasutajaAndmed[0]);
         if (parooliRasi.contentEquals(kasutajaAndmed[1])) {
@@ -70,15 +75,19 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
                 logija.kirjutaErind(viga, "Kasutaja ID tagastamine");
                 throw viga;
             }
+            logija.kirjutaLogi("Kasutaja logis edukalt sisse (nimi: %s)".formatted(kasutajaNimi));
             return autentimisOnnestumus.AUTENDITUD;
         }
+        logija.kirjutaLogi("Kasutaja sisestas vale parooli (nimi: %s)".formatted(kasutajaNimi));
         return autentimisOnnestumus.VALE_PAROOL;
     }
 
     @Override
     public ArrayList<Ulesanne> tagastaUlesanded(int eesmargiID) throws SQLException, IOException {
         try {
-            return andmebaas.tagastaUlesanneteOlemid(eesmargiID);
+            ArrayList<Ulesanne> ulesanded = andmebaas.tagastaUlesanneteOlemid(eesmargiID);
+            logija.kirjutaLogi("Ülesanded edukalt laetud (Eesmärgi ID: %d)".formatted(eesmargiID));
+            return ulesanded;
         } catch (SQLException viga) {
             logija.kirjutaErind(viga, "Ülesannete olemite tagastamine");
             throw viga;
@@ -89,6 +98,7 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
         ArrayList<Eesmark> eesmargid;
         try {
             eesmargid = andmebaas.tagastaEesmarkideOlemid(kasutajaID);
+            logija.kirjutaLogi("Eesmärgid edukalt laetud (Kasutaja ID: %d)".formatted(kasutajaID));
         } catch (SQLException viga) {
             logija.kirjutaErind(viga, "Eesmärkide olemite tagastamine");
             throw viga;
@@ -102,6 +112,7 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
     public void lisaProduktiivneAeg(int aegSekundites, int ulesanneID) throws SQLException, IOException {
         try {
             andmebaas.lisaUusProduktiivsusAeg(Timestamp.valueOf(LocalDateTime.now()), aegSekundites, ulesanneID);
+            logija.kirjutaLogi("Uus produktiivsusaeg edukalt lisatud (Ülesande ID: %d)".formatted(ulesanneID));
         } catch (SQLException viga) {
             logija.kirjutaErind(viga, "Produktiivsusaja loomisel tekkis viga");
             throw viga;
@@ -110,18 +121,22 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
 
     public int tagastaUlesandeProduktiivneAeg(int ulesandeID) throws SQLException, IOException {
         try {
-            return andmebaas.tagastaUlesandeProduktiivneAeg(ulesandeID);
+            int ulesandeProduktiivneAeg = andmebaas.tagastaUlesandeProduktiivneAeg(ulesandeID);
+            logija.kirjutaLogi("Ülesande produktiivse aja summa edukalt tagastatud: (Ülesande ID: %d)".formatted(ulesandeID));
+            return ulesandeProduktiivneAeg;
         } catch (SQLException viga) {
-            logija.kirjutaErind(viga, "Ülesande, ID: %d, lisamisel tekkis viga".formatted(ulesandeID));
+            logija.kirjutaErind(viga, "Ülesande, ID: %d, aja summa tagastamisel tekkis viga".formatted(ulesandeID));
             throw viga;
         }
     }
 
     public int tagastaEesmargiProduktiivneAeg(int eesmargiID) throws SQLException, IOException {
         try {
-            return andmebaas.tagastaEesmargiProduktiivneAeg(eesmargiID);
+            int eesmargiProduktiivneAeg = andmebaas.tagastaEesmargiProduktiivneAeg(eesmargiID);
+            logija.kirjutaLogi("Eesmärgi produktiivse aja summa edukalt tagastatud: (Eesmärgi ID: %d)".formatted(eesmargiID));
+            return eesmargiProduktiivneAeg;
         } catch (SQLException viga) {
-            logija.kirjutaErind(viga, "Eesmargi, ID: %d, lisamisel tekkis viga".formatted(eesmargiID));
+            logija.kirjutaErind(viga, "Eesmargi, ID: %d, aja summa tagastamisel tekkis viga".formatted(eesmargiID));
             throw viga;
         }
     }
@@ -134,6 +149,7 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
     public void close() throws Exception {
         try {
             andmebaas.close();
+            logija.kirjutaLogi("Andmebaas edukalt suletud");
         }
         catch (SQLException viga) {
             throw viga;

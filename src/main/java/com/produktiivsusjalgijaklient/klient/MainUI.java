@@ -5,6 +5,7 @@ import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
+import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -698,7 +699,7 @@ public class MainUI extends Application {
         super.stop();
     }
 
-    public void kuvaTaimer(Stage primaryStage, int aeg) {
+    public int kuvaTaimer(Stage primaryStage, int aeg) {
         Font digitalFont = Font.loadFont(getClass().getResourceAsStream("digital-7.ttf"), 100);
         BorderPane juur = new BorderPane();
         aeg = aeg * 60;
@@ -738,6 +739,7 @@ public class MainUI extends Application {
         primaryStage.show();
 
         taimer.alustaLoendust();
+        return 1;
     }
 
     private void taimeriEkraan(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> andmed, Eesmark eesmark, Ulesanne ulesanne) throws SQLException, IOException {
@@ -783,11 +785,8 @@ public class MainUI extends Application {
         Label prodAegSilt = new Label("Produktiivsusaeg (minutites):");
         TextField prodAegVali = new TextField();
 
-        Label puhkeAegSilt = new Label("Puhkeaeg (minutites):");
-        TextField puhkeAegVali = new TextField();
-
-        Label[] sildid = new Label[] {prodAegSilt, puhkeAegSilt};
-        TextField[] tekstiValjad = new TextField[] {prodAegVali, puhkeAegVali};
+        Label[] sildid = new Label[] {prodAegSilt};
+        TextField[] tekstiValjad = new TextField[] {prodAegVali};
 
         final int[] fokuseeritudVali = {0};
 
@@ -848,5 +847,47 @@ public class MainUI extends Application {
         stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Teema.css");
 
         return stseen;
+    }
+
+    public void kuvaTaimerPuhkama(Stage primaryStage, int aeg) {
+        Font digitalFont = Font.loadFont(getClass().getResourceAsStream("digital-7.ttf"), 100);
+        BorderPane juur = new BorderPane();
+        aeg = aeg * 60;
+        taimer = new Taimer(aeg);
+        Label taimeriSilt = new Label();
+        taimeriSilt.textProperty().bind(Bindings.createStringBinding(() -> {
+            int aegSekundites = taimer.getAegSekundites();
+            String mark;
+            if (Integer.signum(aegSekundites) == -1) {
+                mark = "+";
+                primaryStage.close();
+            } else {
+                mark = "";
+            }
+            aegSekundites = Math.abs(aegSekundites);
+            int minuteid = aegSekundites / 60;
+            int sekundeid = aegSekundites % 60;
+            return String.format("%s%02d:%02d", mark, minuteid, sekundeid);
+        }, taimer.aegSekunditesProperty()));
+
+        taimeriSilt.setFont(digitalFont);
+
+        juur.setCenter(taimeriSilt);
+        Button lopetaNupp = new Button("Stop");
+        lopetaNupp.getStyleClass().add("lopeta-nupp");
+        lopetaNupp.setOnAction(e -> {taimer.close(); primaryStage.close();});
+
+        BorderPane.setAlignment(lopetaNupp, Pos.CENTER);
+        juur.setBottom(lopetaNupp);
+
+
+        juur.setBackground(Background.EMPTY);
+
+        Scene stseen = new Scene(juur, 400, 200);
+        stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Taimer.css");
+        primaryStage.setScene(stseen);
+        primaryStage.show();
+
+        taimer.alustaLoendust();
     }
 }

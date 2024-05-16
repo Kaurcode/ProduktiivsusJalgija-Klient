@@ -886,7 +886,6 @@ public class MainUI extends Application {
         StackPane juur = new StackPane(mitmeReaLogid);
 
         Scene stseen = new Scene(juur, 300, 200);
-        stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Taimer.css");
 
         primaryStage.setScene(stseen);
         primaryStage.setTitle("Logid");

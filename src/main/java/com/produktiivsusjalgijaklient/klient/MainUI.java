@@ -106,19 +106,17 @@ public class MainUI extends Application {
         });
 
         valikuVaade.setPadding(new Insets(5));
-
-        VBox juur = new VBox();
-
-        Button valiEesmark = new Button("Ok");
-        valiEesmark.setOnAction(actionEvent -> {
+        valikuVaade.setOnMouseClicked(mouseEvent -> {
             Eesmark valitudeesmark = valikuVaade.getSelectionModel().getSelectedItem();
             System.out.println(valitudeesmark.getEesmargiNimi());
             try {
-                ulesanneteUI(valiEesmark.getScene(), valiEesmark.getScene().getWindow(), andmeHaldur, valitudeesmark, finalAndmed);
+                ulesanneteUI(valikuVaade.getScene(), valikuVaade.getScene().getWindow(), andmeHaldur, valitudeesmark, finalAndmed);
             } catch (SQLException | IOException e) {
                 throw new RuntimeException(e);
             }
         });
+
+        VBox juur = new VBox();
 
         Button looEesmark = new Button("Loo uus eesmärk");
         looEesmark.setOnAction(actionEvent -> {
@@ -132,10 +130,9 @@ public class MainUI extends Application {
             algneStseen(andmeHaldur, finalAndmed);
         });
 
-        juur.getChildren().addAll(valikuVaade, valiEesmark, looEesmark, tagasi);
+        juur.getChildren().addAll(valikuVaade, looEesmark, tagasi);
         juur.setAlignment(Pos.CENTER);
         juur.setSpacing(10);
-        VBox.setMargin(valiEesmark, new Insets(10, 0, 20, 0));
         VBox.setMargin(looEesmark, new Insets(10, 0, 20, 0));
         VBox.setMargin(tagasi, new Insets(10, 0, 20, 0));
         Scene stseen = new Scene(juur);
@@ -492,8 +489,9 @@ public class MainUI extends Application {
         });
 
         valikuVaade.setPadding(new Insets(5));
-
-        Button valiUlesanne = new Button("Ok");
+        valikuVaade.setOnMouseClicked(mouseEvent -> {
+            System.out.println("Valitud");
+        });
 
         Button looUlesanne = new Button("Loo uus ülesanne");
         looUlesanne.setOnAction(actionEvent -> {
@@ -515,10 +513,9 @@ public class MainUI extends Application {
             }
         });
 
-        juur.getChildren().addAll(valikuVaade, valiUlesanne, looUlesanne, tagasi);
+        juur.getChildren().addAll(valikuVaade, looUlesanne, tagasi);
         juur.setAlignment(Pos.CENTER);
         juur.setSpacing(10);
-        VBox.setMargin(valiUlesanne, new Insets(10, 0, 20, 0));
         VBox.setMargin(looUlesanne, new Insets(10, 0, 20, 0));
         VBox.setMargin(tagasi, new Insets(10, 0, 20, 0));
         Scene stseen = new Scene(juur);

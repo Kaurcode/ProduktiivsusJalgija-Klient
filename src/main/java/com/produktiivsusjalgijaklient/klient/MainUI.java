@@ -106,19 +106,17 @@ public class MainUI extends Application {
         });
 
         valikuVaade.setPadding(new Insets(5));
-
-        VBox juur = new VBox();
-
-        Button valiEesmark = new Button("Ok");
-        valiEesmark.setOnAction(actionEvent -> {
+        valikuVaade.setOnMouseClicked(mouseEvent -> {
             Eesmark valitudeesmark = valikuVaade.getSelectionModel().getSelectedItem();
             System.out.println(valitudeesmark.getEesmargiNimi());
             try {
-                ulesanneteUI(valiEesmark.getScene(), valiEesmark.getScene().getWindow(), andmeHaldur, valitudeesmark, finalAndmed);
+                ulesanneteUI(valikuVaade.getScene(), valikuVaade.getScene().getWindow(), andmeHaldur, valitudeesmark, finalAndmed);
             } catch (SQLException | IOException e) {
                 throw new RuntimeException(e);
             }
         });
+
+        VBox juur = new VBox();
 
         Button looEesmark = new Button("Loo uus eesmärk");
         looEesmark.setOnAction(actionEvent -> {
@@ -132,10 +130,9 @@ public class MainUI extends Application {
             algneStseen(andmeHaldur, finalAndmed);
         });
 
-        juur.getChildren().addAll(valikuVaade, valiEesmark, looEesmark, tagasi);
+        juur.getChildren().addAll(valikuVaade, looEesmark, tagasi);
         juur.setAlignment(Pos.CENTER);
         juur.setSpacing(10);
-        VBox.setMargin(valiEesmark, new Insets(10, 0, 20, 0));
         VBox.setMargin(looEesmark, new Insets(10, 0, 20, 0));
         VBox.setMargin(tagasi, new Insets(10, 0, 20, 0));
         Scene stseen = new Scene(juur);
@@ -492,8 +489,10 @@ public class MainUI extends Application {
         });
 
         valikuVaade.setPadding(new Insets(5));
-
-        Button valiUlesanne = new Button("Ok");
+        valikuVaade.setOnMouseClicked(mouseEvent -> {
+            System.out.println("Valitud");
+            kuvaTaimer(new Stage());
+        });
 
         Button looUlesanne = new Button("Loo uus ülesanne");
         looUlesanne.setOnAction(actionEvent -> {
@@ -515,10 +514,9 @@ public class MainUI extends Application {
             }
         });
 
-        juur.getChildren().addAll(valikuVaade, valiUlesanne, looUlesanne, tagasi);
+        juur.getChildren().addAll(valikuVaade, looUlesanne, tagasi);
         juur.setAlignment(Pos.CENTER);
         juur.setSpacing(10);
-        VBox.setMargin(valiUlesanne, new Insets(10, 0, 20, 0));
         VBox.setMargin(looUlesanne, new Insets(10, 0, 20, 0));
         VBox.setMargin(tagasi, new Insets(10, 0, 20, 0));
         Scene stseen = new Scene(juur);
@@ -735,5 +733,45 @@ public class MainUI extends Application {
             andmeHaldur.close();
         }
         super.stop();
+    }
+
+    public void kuvaTaimer(Stage primaryStage) {
+        Font digitalFont = Font.loadFont(getClass().getResourceAsStream("digital-7.ttf"), 100);
+        BorderPane juur = new BorderPane();
+        taimer = new Taimer(10);
+        Label taimeriSilt = new Label();
+        taimeriSilt.textProperty().bind(Bindings.createStringBinding(() -> {
+            int aegSekundites = taimer.getAegSekundites();
+            String mark;
+            if (Integer.signum(aegSekundites) == -1) {
+                mark = "+";
+            } else {
+                mark = "";
+            }
+            aegSekundites = Math.abs(aegSekundites);
+            int minuteid = aegSekundites / 60;
+            int sekundeid = aegSekundites % 60;
+            return String.format("%s%02d:%02d", mark, minuteid, sekundeid);
+        }, taimer.aegSekunditesProperty()));
+
+        taimeriSilt.setFont(digitalFont);
+
+        juur.setCenter(taimeriSilt);
+        Button lopetaNupp = new Button("Stop");
+        lopetaNupp.getStyleClass().add("lopeta-nupp");
+        lopetaNupp.setOnAction(e -> {taimer.close(); primaryStage.close();});
+
+        BorderPane.setAlignment(lopetaNupp, Pos.CENTER);
+        juur.setBottom(lopetaNupp);
+
+
+        juur.setBackground(Background.EMPTY);
+
+        Scene stseen = new Scene(juur, 400, 200);
+        stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Taimer.css");
+        primaryStage.setScene(stseen);
+        primaryStage.show();
+
+        taimer.alustaLoendust();
     }
 }

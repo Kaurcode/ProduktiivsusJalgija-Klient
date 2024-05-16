@@ -112,7 +112,7 @@ public class MainUI extends Application {
         Button valiEesmark = new Button("Ok");
         valiEesmark.setOnAction(actionEvent -> {
             Eesmark valitudeesmark = valikuVaade.getSelectionModel().getSelectedItem();
-            System.out.println(valitudeesmark);
+            System.out.println(valitudeesmark.getEesmargiNimi());
             try {
                 ulesanneteUI(valiEesmark.getScene(), valiEesmark.getScene().getWindow(), andmeHaldur, valitudeesmark, finalAndmed);
             } catch (SQLException | IOException e) {
@@ -450,7 +450,11 @@ public class MainUI extends Application {
         uusLava.show();
     }
 
-    private Scene kuvaulesanded(LokaalneAndmeHaldur andmeHaldur, ArrayList<Ulesanne> andmed, Eesmark eesmark) {
+    private Scene kuvaulesanded(LokaalneAndmeHaldur andmeHaldur, ArrayList<Ulesanne> andmed, Eesmark eesmark) throws SQLException, IOException {
+        VBox juur = new VBox();
+        for (Ulesanne ulesanne : andmeHaldur.tagastaUlesanded(eesmark.getEesmargiID())) {
+            System.out.println(ulesanne.getUlesandeNimi());
+        }
         ArrayList<Ulesanne> finalAndmed = andmed;
         try {
             andmed = andmeHaldur.getAndmebaas().tagastaUlesanneteOlemid(eesmark.getEesmargiID());
@@ -466,7 +470,7 @@ public class MainUI extends Application {
             veateade.show();
         }
         ObservableList<Ulesanne> valikud = FXCollections.observableArrayList(andmed);
-        ListView<Ulesanne> valikuVaade = new ListView<>();
+        ListView<Ulesanne> valikuVaade = new ListView<>(valikud);
 
         valikuVaade.setCellFactory(new Callback<ListView<Ulesanne>, ListCell<Ulesanne>>() {
             @Override
@@ -489,8 +493,6 @@ public class MainUI extends Application {
 
         valikuVaade.setPadding(new Insets(5));
 
-        VBox juur = new VBox();
-
         Button valiUlesanne = new Button("Ok");
 
         Button looUlesanne = new Button("Loo uus ülesanne");
@@ -498,9 +500,7 @@ public class MainUI extends Application {
             ((Stage) juur.getScene().getWindow()).close();
             try {
                 uusUlesanne(looUlesanne.getScene(), looUlesanne.getScene().getWindow(), andmeHaldur, finalAndmed, andmeHaldur.tagastaEesmargid(andmeHaldur.getKasutajaID()), eesmark);
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            } catch (IOException e) {
+            } catch (SQLException | IOException e) {
                 throw new RuntimeException(e);
             }
         });

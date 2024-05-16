@@ -25,6 +25,12 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+/******************************************************************
+ * Tegemist on suure koodiga, kuid paljud
+ * meetodid on sarnase ülesehitusega. Programm avab mitmeid aknaid,
+ * mistõttu edasi liikudes tekib meetoditel parameetreid juurde.
+ ******************************************************************/
+
 public class MainUI extends Application {
 
     private LokaalneAndmeHaldur andmeHaldur;
@@ -32,22 +38,19 @@ public class MainUI extends Application {
 
 
     public static void main(String[] args) {
-        /*try (LokaalneAndmeHaldur andmeHaldur = new LokaalneAndmeHaldur("produktiivsusjalgija")) {
-            System.out.println(andmeHaldur.logiSisse("Hannes", "parool".toCharArray()));
-            andmeHaldur.kirjutaLogi("Test");
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }*/
         launch(args);
     }
 
+    /********
+     * Meetod, mis käivitab andmehalduri andmebaasile ja avab esimese sisselogimis ekraani
+     * @param primaryStage
+     */
     @Override
     public void start(Stage primaryStage) {
         Stage peaLava = new Stage();
         try {
             andmeHaldur = new LokaalneAndmeHaldur("produktiivsusjalgija");
             ArrayList<Eesmark> andmed = new ArrayList<>();
-            //ObservableList<Eesmark> valikud = FXCollections.observableArrayList(andmed);
             peaLava.setScene(sisselogimisUI(andmeHaldur, andmed));
             peaLava.setTitle("Sisselogimine");
             peaLava.show();
@@ -64,13 +67,15 @@ public class MainUI extends Application {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        /*ArrayList<String> andmed = new ArrayList<>(Arrays.asList("kasutaja", "postgre", "sql", "hannes", "kaur", "kaur2", "kaur3"));
-        ObservableList<String> valikudNaidatuna = FXCollections.observableArrayList(andmed);
-        peaLava.setScene(kuvaAndmed(valikudNaidatuna));
-        peaLava.setTitle("Katsetus");
-        peaLava.show();*/
     }
 
+    /**************
+     * Eesmärkide nimekirja meetod, võtab parameetriteks andmehalduri ja eesmärgi klassi isendite massiivi
+     * Meetodis on ActionEventid nuppudele vajutamiseks
+     * @param andmeHaldur
+     * @param andmed
+     * @return
+     */
     private Scene kuvaAndmed(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> andmed) {
         ArrayList<Eesmark> finalAndmed = andmed;
         try {
@@ -143,10 +148,13 @@ public class MainUI extends Application {
         return stseen;
     }
 
-    private void saadaAndmed(String andmed) {
-        // TODO
-    }
-
+    /**********
+     * Sisselogimisekraani stseen, klahvivajutused väljade vahel liikumiseks ning nupud uue kasutaja loomiseks
+     * ja sisse logimiseks. Sisse logimisel meetod suhtleb andmehalduriga ja autentib kasutaja andmed
+     * @param andmeHaldur
+     * @param valikud
+     * @return
+     */
     private Scene sisselogimisUI(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) {
         VBox juur = new VBox();
 
@@ -217,8 +225,16 @@ public class MainUI extends Application {
                 AndmeHaldur.autentimisOnnestumus autentimisOnnestumus = andmeHaldur.logiSisse(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray());
                 switch (autentimisOnnestumus) {
                     case AUTENDITUD -> eesmarkideUI(edasiNupp.getScene(), edasiNupp.getScene().getWindow(), andmeHaldur, valikud);
-                    case VALE_KASUTAJANIMI -> System.out.println("Kasutajanimi on vale");
-                    case VALE_PAROOL -> System.out.println("Parool on vale");
+                    case VALE_KASUTAJANIMI -> {
+                        Stage veateade = new Stage();
+                        veateade.setScene(vigaUI("Kasutaja viga", "Kasutajanimi on vale", false));
+                        veateade.show();
+                    }
+                    case VALE_PAROOL -> {
+                        Stage veateade = new Stage();
+                        veateade.setScene(vigaUI("Kasutaja viga", "Sisestatud parool on vale", false));
+                        veateade.show();
+                    }
                 }
             } catch (IOException e) {
                 Stage veateade = new Stage();
@@ -255,6 +271,14 @@ public class MainUI extends Application {
         return stseen;
     }
 
+    /*************
+     * Meetod, mis sulgeb eelneva akna ja avab uue. Selline meetod on iga uue akna avamisel ning ülesehitus on umbes sama,
+     * seega tegemist on n-ö "abimeetodiga".
+     * @param eelmine
+     * @param omanik
+     * @param andmeHaldur
+     * @param valikud
+     */
     private void looUusKasutaja(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) {
 
         Scene uus = uueKasutajaUI(eelmine, omanik, andmeHaldur, valikud);
@@ -269,6 +293,15 @@ public class MainUI extends Application {
         uusLava.show();
     }
 
+    /**************
+     * Uue kasutaja loomise stseen, kontrollib olemasolevate kasutajate nimesid ja eduka loomise korral
+     * salvestab kasutaja andmebaasi
+     * @param eelmine
+     * @param omanik
+     * @param andmeHaldur
+     * @param valikud
+     * @return
+     */
     private Scene uueKasutajaUI(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) {
         VBox juur = new VBox();
 
@@ -338,8 +371,16 @@ public class MainUI extends Application {
             if (!kasutajaNimeVali.getText().isEmpty() || !parooliVali.getText().isEmpty()) {
                 try {
                     switch (andmeHaldur.looKasutaja(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray())) {
-                        case MITTEUNIKAALNE_KASUTAJANIMI -> System.out.println("Kasutajanimi peab olema unikaalne");
-                    case KASUTAJA_LOODUD -> System.out.println("Kasutaja loodud");
+                        case MITTEUNIKAALNE_KASUTAJANIMI -> {
+                            Stage veateade = new Stage();
+                            veateade.setScene(vigaUI("Kasutaja viga", "Kasutajanimi peab olema unikaalne", false));
+                            veateade.show();
+                        }
+                    case KASUTAJA_LOODUD -> {
+                        Stage veateade = new Stage();
+                        veateade.setScene(vigaUI("Kasutaja loomine edukas", "Uus kasutaja on edukalt loodud", false));
+                        veateade.show();
+                    }
                 }
             } catch (IOException e) {
                 Stage veateade = new Stage();
@@ -363,7 +404,9 @@ public class MainUI extends Application {
                 veateade.show();
                 }
             } else {
-                System.out.println("Väljad ei tohi olla tühjad");
+                Stage veateade = new Stage();
+                veateade.setScene(vigaUI("Kasutaja viga", "Kasutaja väljad ei tohi olla tühjad", false));
+                veateade.show();
             }
         });
 
@@ -378,39 +421,6 @@ public class MainUI extends Application {
         stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Teema.css");
 
         return stseen;
-    }
-
-    private void valitudKasutaja(Scene eelmine, Window omanik, String valitudKasutaja) {
-        VBox juur = new VBox();
-        juur.setAlignment(Pos.CENTER);
-        juur.setSpacing(10);
-
-        Label kasutajaNimiLabel = new Label("Valitud kasutaja: " + valitudKasutaja);
-
-        GridPane infoSisend = new GridPane();
-        infoSisend.setAlignment(Pos.BASELINE_LEFT);
-        infoSisend.setHgap(20);
-        infoSisend.setVgap(10);
-
-        Label parooliSilt = new Label("Sisesta parool:");
-        PasswordField parooliVali = new PasswordField();
-
-
-        Button logiSisse = new Button("Logi sisse");
-        Button tagasiNupp = new Button("Tagasi");
-
-
-        juur.getChildren().addAll(kasutajaNimiLabel, parooliSilt, parooliVali, logiSisse, tagasiNupp);
-        Scene uusStseen = new Scene(juur, 400, 300);
-        // Sulgeme eelneva stseeni
-        Stage peaLava = (Stage) omanik;
-        peaLava.close();
-
-        Stage uusLava = new Stage();
-        uusLava.setScene(uusStseen);
-        uusLava.initOwner(omanik);
-        uusLava.initModality(Modality.WINDOW_MODAL);
-        uusLava.show();
     }
 
     private void algneStseen(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) {
@@ -450,11 +460,19 @@ public class MainUI extends Application {
         uusLava.show();
     }
 
+    /***********
+     * Sarnane meetod eesmärkide kuvamisele, seekord ülesannetega. Koodis edasi minnes tekib parameetreid juurde,
+     * kuna mitmeid väljasid on vaja salvestada, et ekraanide vahel liikuda
+     * @param andmeHaldur
+     * @param andmed
+     * @param eesmark
+     * @return
+     * @throws SQLException
+     * @throws IOException
+     */
     private Scene kuvaulesanded(LokaalneAndmeHaldur andmeHaldur, ArrayList<Ulesanne> andmed, Eesmark eesmark) throws SQLException, IOException {
         VBox juur = new VBox();
-        for (Ulesanne ulesanne : andmeHaldur.tagastaUlesanded(eesmark.getEesmargiID())) {
-            System.out.println(ulesanne.getUlesandeNimi());
-        }
+
         ArrayList<Ulesanne> finalAndmed = andmed;
         try {
             andmed = andmeHaldur.getAndmebaas().tagastaUlesanneteOlemid(eesmark.getEesmargiID());
@@ -545,6 +563,12 @@ public class MainUI extends Application {
         uusLava.show();
     }
 
+    /**********
+     * Uue eesmärgi loomise meetod, lisatud tühja välja kontroll.
+     * @param andmeHaldur
+     * @param valikud
+     * @return
+     */
     private Scene uusEesmarkUI(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) {
         VBox juur = new VBox();
 
@@ -574,7 +598,9 @@ public class MainUI extends Application {
                 }
                 valikud.add(new Eesmark(eesmarkID, eesmargiVali.getText(), false));
             } else {
-                System.out.println("Tühi väli ei sobi");
+                Stage veateade = new Stage();
+                veateade.setScene(vigaUI("Eesmärgi viga", "Eesmärgi väli ei tohi olla tühi", false));
+                veateade.show();
             }
         });
 
@@ -605,6 +631,14 @@ public class MainUI extends Application {
         uusLava.show();
     }
 
+    /*********
+     * Sama meetod, mis uue eesmärgi loomise puhul
+     * @param andmeHaldur
+     * @param valikud
+     * @param eesmargid
+     * @param eesmark
+     * @return
+     */
     private Scene uusUlesanneUI(LokaalneAndmeHaldur andmeHaldur, ArrayList<Ulesanne> valikud, ArrayList<Eesmark> eesmargid, Eesmark eesmark) {
         VBox juur = new VBox();
 
@@ -634,7 +668,9 @@ public class MainUI extends Application {
                 }
                 valikud.add(new Ulesanne(ülesandeID, ulesanneVali.getText()));
             } else {
-                System.out.println("Tühi väli ei sobi");
+                Stage veateade = new Stage();
+                veateade.setScene(vigaUI("Ülesande viga", "Ülesande väli ei tohi olla tühi", false));
+                veateade.show();
             }
         });
 
@@ -655,7 +691,14 @@ public class MainUI extends Application {
         return stseen;
     }
 
-    public Scene vigaUI(String paiseTekst, String veateateTekst, boolean fataalne) {
+    /************
+     * Baasmeetod, mis võimaldab vigade tekkimisel anda kasutajale teada probleemist.
+     * @param paiseTekst
+     * @param veateateTekst
+     * @param fataalne
+     * @return
+     */
+    public static Scene vigaUI(String paiseTekst, String veateateTekst, boolean fataalne) {
         VBox juur = new VBox();
 
         juur.setPadding(new Insets(15));
@@ -671,13 +714,6 @@ public class MainUI extends Application {
         Button nupp = new Button(fataalne ? "Sulge" : "Ok");
         nupp.setOnMouseClicked(mouseEvent -> {
             Stage veaAken = (Stage) nupp.getScene().getWindow();
-            if (fataalne) {
-                try {
-                    stop();
-                } catch (Exception viga) {
-                    throw new RuntimeException();
-                }
-            }
             veaAken.close();
         });
 
@@ -706,7 +742,13 @@ public class MainUI extends Application {
         super.stop();
     }
 
-    public int kuvaTaimer(Stage primaryStage, int aeg) {
+    /************
+     * Meetod taimeri isendi ekraani loomiseks, loeb aega ning aja lõpus sulgeb iseennast.
+     * @param primaryStage
+     * @param aeg
+     * @return
+     */
+    public void kuvaTaimer(Stage primaryStage, int aeg) {
         Font digitalFont = Font.loadFont(getClass().getResourceAsStream("digital-7.ttf"), 100);
         BorderPane juur = new BorderPane();
         aeg = aeg * 60;
@@ -746,7 +788,6 @@ public class MainUI extends Application {
         primaryStage.show();
 
         taimer.alustaLoendust();
-        return 1;
     }
 
     private void taimeriEkraan(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> andmed, Eesmark eesmark, Ulesanne ulesanne) throws SQLException, IOException {
@@ -763,6 +804,18 @@ public class MainUI extends Application {
         uusLava.show();
     }
 
+    /**********
+     * Taimeri loomise ekraan, loeb andmebaasist ülesandele kulutatud aja ning võimaldab luua uut taimerit.
+     * @param eelmine
+     * @param omanik
+     * @param andmeHaldur
+     * @param andmed
+     * @param eesmark
+     * @param ulesanne
+     * @return
+     * @throws SQLException
+     * @throws IOException
+     */
     private Scene taimerUI(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> andmed, Eesmark eesmark, Ulesanne ulesanne) throws SQLException, IOException {
         VBox juur = new VBox();
 
@@ -783,61 +836,28 @@ public class MainUI extends Application {
         infoSisend.setHgap(20);
         infoSisend.setVgap(10);
 
-        System.out.println(ulesanne.getUlesandeID());
-        System.out.println( andmeHaldur.tagastaUlesandeProduktiivneAeg(ulesanne.getUlesandeID()));
-
         Text tekst = new Text("Seda ülesannet oled juba teinud " + andmeHaldur.tagastaUlesandeProduktiivneAeg(ulesanne.getUlesandeID()) + " minutit");
         tekst.setFill(Color.WHITE);
 
         Label prodAegSilt = new Label("Produktiivsusaeg (minutites):");
         TextField prodAegVali = new TextField();
 
-        Label[] sildid = new Label[] {prodAegSilt};
-        TextField[] tekstiValjad = new TextField[] {prodAegVali};
-
-        final int[] fokuseeritudVali = {0};
-
-        EventHandler<KeyEvent> nupuVajutus = keyEvent -> {
-            if (keyEvent.getCode() == KeyCode.ENTER) {
-                fokuseeritudVali[0]++;
-                fokuseeritudVali[0] = Math.min(fokuseeritudVali[0], tekstiValjad.length - 1);
-                keyEvent.consume();
-            } else if (keyEvent.getCode() == KeyCode.DOWN) {
-                fokuseeritudVali[0]++;
-                fokuseeritudVali[0] = Math.min(fokuseeritudVali[0], tekstiValjad.length - 1);
-                keyEvent.consume();
-            } else if (keyEvent.getCode() == KeyCode.UP) {
-                fokuseeritudVali[0]--;
-                fokuseeritudVali[0] = Math.max(fokuseeritudVali[0], 0);
-                keyEvent.consume();
-            }
-            tekstiValjad[fokuseeritudVali[0]].requestFocus();
-        };
-
-        for (int elemendiNr = 0; elemendiNr < tekstiValjad.length; elemendiNr++) {
-            infoSisend.addRow(elemendiNr, sildid[elemendiNr], tekstiValjad[elemendiNr]);
-            GridPane.setHgrow(tekstiValjad[elemendiNr], Priority.ALWAYS);
-
-            tekstiValjad[elemendiNr].setOnKeyPressed(nupuVajutus);
-
-            final int finalElemendiNr = elemendiNr;
-            tekstiValjad[elemendiNr].focusedProperty().addListener((observableValue, vanaVaartus, uusVaartus) -> {
-                if (uusVaartus) {
-                    fokuseeritudVali[0] = finalElemendiNr;
-                }
-            });
-        }
-
-        juur.getChildren().addAll(infoSisend, tekst);
+        juur.getChildren().addAll(prodAegSilt, prodAegVali, tekst);
 
         Button edasiNupp = new Button("Edasi");
         edasiNupp.setOnAction(actionEvent -> {
-            try {
-                andmeHaldur.lisaProduktiivneAeg(Integer.parseInt(prodAegVali.getText()) , ulesanne.getUlesandeID());
-            } catch (SQLException | IOException e) {
-                throw new RuntimeException(e);
+            if (!prodAegVali.getText().isEmpty()) {
+                try {
+                    andmeHaldur.lisaProduktiivneAeg(Integer.parseInt(prodAegVali.getText()), ulesanne.getUlesandeID());
+                } catch (SQLException | IOException e) {
+                    throw new RuntimeException(e);
+                }
+                kuvaTaimer(new Stage(), Integer.parseInt(prodAegVali.getText()));
+            } else {
+                Stage veateade = new Stage();
+                veateade.setScene(vigaUI("Taimeri viga", "Taimeri väli ei tohi olla tühi", false));
+                veateade.show();
             }
-            kuvaTaimer(new Stage(), Integer.parseInt(prodAegVali.getText()));
         });
 
         Button tagasi = new Button("Tagasi");
@@ -854,47 +874,5 @@ public class MainUI extends Application {
         stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Teema.css");
 
         return stseen;
-    }
-
-    public void kuvaTaimerPuhkama(Stage primaryStage, int aeg) {
-        Font digitalFont = Font.loadFont(getClass().getResourceAsStream("digital-7.ttf"), 100);
-        BorderPane juur = new BorderPane();
-        aeg = aeg * 60;
-        taimer = new Taimer(aeg);
-        Label taimeriSilt = new Label();
-        taimeriSilt.textProperty().bind(Bindings.createStringBinding(() -> {
-            int aegSekundites = taimer.getAegSekundites();
-            String mark;
-            if (Integer.signum(aegSekundites) == -1) {
-                mark = "+";
-                primaryStage.close();
-            } else {
-                mark = "";
-            }
-            aegSekundites = Math.abs(aegSekundites);
-            int minuteid = aegSekundites / 60;
-            int sekundeid = aegSekundites % 60;
-            return String.format("%s%02d:%02d", mark, minuteid, sekundeid);
-        }, taimer.aegSekunditesProperty()));
-
-        taimeriSilt.setFont(digitalFont);
-
-        juur.setCenter(taimeriSilt);
-        Button lopetaNupp = new Button("Stop");
-        lopetaNupp.getStyleClass().add("lopeta-nupp");
-        lopetaNupp.setOnAction(e -> {taimer.close(); primaryStage.close();});
-
-        BorderPane.setAlignment(lopetaNupp, Pos.CENTER);
-        juur.setBottom(lopetaNupp);
-
-
-        juur.setBackground(Background.EMPTY);
-
-        Scene stseen = new Scene(juur, 400, 200);
-        stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Taimer.css");
-        primaryStage.setScene(stseen);
-        primaryStage.show();
-
-        taimer.alustaLoendust();
     }
 }

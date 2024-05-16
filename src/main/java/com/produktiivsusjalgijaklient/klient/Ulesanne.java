@@ -2,6 +2,12 @@ package com.produktiivsusjalgijaklient.klient;
 
 import java.sql.Timestamp;
 
+
+/**************************************************
+ * Ülesande klass, salvestab endas
+ * ülesande ID (andmebaasi seoste jaoks vajalik),
+ * nime, tehtud parameetri ja vajadusel ka tähtaja.
+ ***************************************************/
 public class Ulesanne {
     private int ulesandeID;
     private String ulesandeNimi;

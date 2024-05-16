@@ -492,8 +492,9 @@ public class MainUI extends Application {
 
         valikuVaade.setPadding(new Insets(5));
         valikuVaade.setOnMouseClicked(mouseEvent -> {
+            Ulesanne ulesanne = valikuVaade.getSelectionModel().getSelectedItem();
             try {
-                taimeriEkraan(juur.getScene(), juur.getScene().getWindow(), andmeHaldur, andmeHaldur.tagastaEesmargid(andmeHaldur.getKasutajaID()), eesmark);
+                taimeriEkraan(juur.getScene(), juur.getScene().getWindow(), andmeHaldur, andmeHaldur.tagastaEesmargid(andmeHaldur.getKasutajaID()), eesmark, ulesanne);
             } catch (SQLException | IOException e) {
                 throw new RuntimeException(e);
             }
@@ -739,9 +740,9 @@ public class MainUI extends Application {
         taimer.alustaLoendust();
     }
 
-    private void taimeriEkraan(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> andmed, Eesmark eesmark) {
+    private void taimeriEkraan(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> andmed, Eesmark eesmark, Ulesanne ulesanne) throws SQLException, IOException {
 
-        Scene uus = taimerUI(eelmine, omanik, andmeHaldur, andmed, eesmark);
+        Scene uus = taimerUI(eelmine, omanik, andmeHaldur, andmed, eesmark, ulesanne);
 
         Stage peaLava = (Stage) omanik;
         peaLava.close();
@@ -753,7 +754,7 @@ public class MainUI extends Application {
         uusLava.show();
     }
 
-    private Scene taimerUI(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> andmed, Eesmark eesmark) {
+    private Scene taimerUI(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> andmed, Eesmark eesmark, Ulesanne ulesanne) throws SQLException, IOException {
         VBox juur = new VBox();
 
         juur.setPadding(new Insets(15));
@@ -773,7 +774,8 @@ public class MainUI extends Application {
         infoSisend.setHgap(20);
         infoSisend.setVgap(10);
 
-        Text tekst = new Text("Seda ülesannet oled juba teinud" + " placeholder minutit");
+        System.out.println(andmeHaldur.tagastaUlesandeProduktiivneAeg(ulesanne.getUlesandeID()));
+        Text tekst = new Text("Seda ülesannet oled juba teinud " + andmeHaldur.getAndmebaas().tagastaUlesandeProduktiivneAeg(ulesanne.getUlesandeID()) + " minutit");
         tekst.setFill(Color.WHITE);
 
         Label prodAegSilt = new Label("Produktiivsusaeg:");

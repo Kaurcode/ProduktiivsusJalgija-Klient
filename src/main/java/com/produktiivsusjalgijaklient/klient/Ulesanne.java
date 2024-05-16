@@ -26,4 +26,8 @@ public class Ulesanne {
     public String getUlesandeNimi() {
         return ulesandeNimi;
     }
+
+    public int getUlesandeID() {
+        return ulesandeID;
+    }
 }

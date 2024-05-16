@@ -34,6 +34,32 @@ public class Logija implements AutoCloseable {
         kirjutaLogi("Input-Output viga - %s - %s".formatted(selgitus, erind.getMessage()));
     }
 
+    public String loeViimased10Rida() throws IOException {
+        String failinimi = "logi.txt";
+        StringBuilder logid = new StringBuilder();
+        int ridu = 10;
+
+        try (RandomAccessFile fail = new RandomAccessFile(failinimi, "r")) {
+            long failiPikkus = fail.length();
+            long kursor = failiPikkus - 1;
+            int loetudRidu = 0;
+
+            while (0 <= kursor && loetudRidu < ridu) {
+                fail.seek(kursor);
+                char taht = (char) fail.read();
+                logid.append(taht);
+                kursor--;
+
+                if (taht == '\n') {
+                    loetudRidu++;
+                }
+            }
+        }
+
+        logid.reverse();
+        return logid.toString();
+    }
+
     @Override
     public void close() throws IOException {
         failiKirjutaja.close();

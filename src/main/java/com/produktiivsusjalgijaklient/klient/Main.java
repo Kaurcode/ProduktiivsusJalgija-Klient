@@ -15,6 +15,7 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception {
         try (LokaalneAndmeHaldur andmeHaldur = new LokaalneAndmeHaldur("produktiivsusjalgija")) {
             andmeHaldur.lisaProduktiivneAeg(60, 1);
+            System.out.println(andmeHaldur.loeLogist10Rida());
         }
     }
 }

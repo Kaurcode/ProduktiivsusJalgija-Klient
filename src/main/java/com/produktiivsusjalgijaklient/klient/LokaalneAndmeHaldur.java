@@ -141,6 +141,10 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
         }
     }
 
+    public String loeLogist10Rida() throws IOException {
+        return logija.loeViimased10Rida();
+    }
+
     public int getKasutajaID() {
         return kasutajaID;
     }

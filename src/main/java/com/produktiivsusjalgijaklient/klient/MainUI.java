@@ -655,7 +655,7 @@ public class MainUI extends Application {
         return stseen;
     }
 
-    public static Scene vigaUI(String paiseTekst, String veateateTekst, boolean fataalne) {
+    public Scene vigaUI(String paiseTekst, String veateateTekst, boolean fataalne) {
         VBox juur = new VBox();
 
         juur.setPadding(new Insets(15));
@@ -671,6 +671,13 @@ public class MainUI extends Application {
         Button nupp = new Button(fataalne ? "Sulge" : "Ok");
         nupp.setOnMouseClicked(mouseEvent -> {
             Stage veaAken = (Stage) nupp.getScene().getWindow();
+            if (fataalne) {
+                try {
+                    stop();
+                } catch (Exception viga) {
+                    throw new RuntimeException();
+                }
+            }
             veaAken.close();
         });
 

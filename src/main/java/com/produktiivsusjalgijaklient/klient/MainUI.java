@@ -698,7 +698,7 @@ public class MainUI extends Application {
      * @param fataalne
      * @return
      */
-    public static Scene vigaUI(String paiseTekst, String veateateTekst, boolean fataalne) {
+    public Scene vigaUI(String paiseTekst, String veateateTekst, boolean fataalne) {
         VBox juur = new VBox();
 
         juur.setPadding(new Insets(15));
@@ -727,7 +727,11 @@ public class MainUI extends Application {
 
         Button logid = new Button("Ava logid");
         logid.setOnAction(actionEvent -> {
-            logideUI(new Stage(), "Logi1\nlogi2\nlogi3");
+            try {
+                logideUI(new Stage(), andmeHaldur.loeLogist10Rida());
+            } catch (IOException viga) {
+                throw new RuntimeException(viga);
+            }
         });
 
         nupp.setOnKeyPressed(enter);

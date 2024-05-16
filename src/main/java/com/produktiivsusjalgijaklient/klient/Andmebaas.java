@@ -163,7 +163,7 @@ public class Andmebaas implements AutoCloseable {
 
     public int tagastaUlesandeProduktiivneAeg(int ulesanneID) throws SQLException {
         final String tagastaUlesandeProduktiivneAeg =
-                "SELECT SUM(produktiivne_aeg_sekundites) " +
+                "SELECT SUM(produktiivne_aeg_sekundites) AS aeg_sekundites " +
                         "FROM produktiivne_aeg " +
                         "WHERE ulesanne_id=? ";
 
@@ -171,7 +171,24 @@ public class Andmebaas implements AutoCloseable {
             tagastaUlesandeProduktiivneAegLause.setInt(1, ulesanneID);
             ResultSet tagastus = tagastaUlesandeProduktiivneAegLause.executeQuery();
             tagastus.next();
-            return tagastus.getInt("produktiivne_aeg_sekundites");
+            return tagastus.getInt("aeg_sekundites");
+        }
+    }
+
+    public int tagastaEesmargiProduktiivneAeg(int eesmarkID) throws SQLException {
+        final String tagastaEesmargiProduktiivneAeg =
+                "SELECT SUM(produktiivne_aeg_sekundites) AS aeg_sekundites " +
+                        "FROM produktiivne_aeg " +
+                        "JOIN ulesanded ON produktiivne_aeg.ulesanne_id=ulesanded.ulesanne_id " +
+                        "WHERE ulesanded.eesmark_id=? ";
+
+        try (PreparedStatement tagastaEesmargiProduktiivneAegLause =
+                     andmebaas.prepareStatement(tagastaEesmargiProduktiivneAeg)) {
+
+            tagastaEesmargiProduktiivneAegLause.setInt(1, eesmarkID);
+            ResultSet tagastus = tagastaEesmargiProduktiivneAegLause.executeQuery();
+            tagastus.next();
+            return tagastus.getInt("aeg_sekundites");
         }
     }
 

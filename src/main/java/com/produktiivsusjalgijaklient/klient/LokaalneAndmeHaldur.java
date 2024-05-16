@@ -108,11 +108,20 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
         }
     }
 
-    public int tagastaUlesandeProduktiivneAeg(int ulesanndeID) throws SQLException, IOException {
+    public int tagastaUlesandeProduktiivneAeg(int ulesandeID) throws SQLException, IOException {
         try {
-            return andmebaas.tagastaUlesandeProduktiivneAeg(ulesanndeID);
+            return andmebaas.tagastaUlesandeProduktiivneAeg(ulesandeID);
         } catch (SQLException viga) {
-            logija.kirjutaErind(viga, "Ülesande, ID: %d, lisamisel tekkis viga".formatted(ulesanndeID));
+            logija.kirjutaErind(viga, "Ülesande, ID: %d, lisamisel tekkis viga".formatted(ulesandeID));
+            throw viga;
+        }
+    }
+
+    public int tagastaEesmargiProduktiivneAeg(int eesmargiID) throws SQLException, IOException {
+        try {
+            return andmebaas.tagastaEesmargiProduktiivneAeg(eesmargiID);
+        } catch (SQLException viga) {
+            logija.kirjutaErind(viga, "Eesmargi, ID: %d, lisamisel tekkis viga".formatted(eesmargiID));
             throw viga;
         }
     }

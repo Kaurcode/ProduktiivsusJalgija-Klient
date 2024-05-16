@@ -724,9 +724,14 @@ public class MainUI extends Application {
             }
         };
 
+        Button logid = new Button("Ava logid");
+        logid.setOnAction(actionEvent -> {
+            logideUI(new Stage(), "Logi1\nlogi2\nlogi3");
+        });
+
         nupp.setOnKeyPressed(enter);
 
-        juur.getChildren().add(nupp);
+        juur.getChildren().addAll(nupp, logid);
 
         Scene stseen = new Scene(juur);
         stseen.getStylesheets().add("produktiivsustracker/server/Teema.css");
@@ -873,5 +878,18 @@ public class MainUI extends Application {
         stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Teema.css");
 
         return stseen;
+    }
+
+    public static void logideUI(Stage primaryStage, String logid) {
+        Label mitmeReaLogid = new Label(logid);
+        mitmeReaLogid.setWrapText(true);
+        StackPane juur = new StackPane(mitmeReaLogid);
+
+        Scene stseen = new Scene(juur, 300, 200);
+        stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Taimer.css");
+
+        primaryStage.setScene(stseen);
+        primaryStage.setTitle("Logid");
+        primaryStage.show();
     }
 }

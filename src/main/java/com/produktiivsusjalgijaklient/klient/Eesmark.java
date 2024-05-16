@@ -3,6 +3,12 @@ package com.produktiivsusjalgijaklient.klient;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
+/**********************************************
+ * Eesmärgi isendite klass, salvestab eesmärgi ID
+ * (andmebaasi seoste jaoks vajalik), nime, tehtud ja
+ * tähtaja parameetrid.
+ *************************************************/
+
 public class Eesmark {
     private int eesmargiID;
     private String eesmargiNimi;

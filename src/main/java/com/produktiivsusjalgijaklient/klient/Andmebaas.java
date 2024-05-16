@@ -4,6 +4,12 @@ import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
 
+/**********************************************
+ * Andmebaasi klass, sarnane I rühmatöö klassile.
+ * Meetodid andmebaasiga ühendumiseks, tabelite ja isendite loomiseks
+ * ning olemite kontrollimiseks.
+ * Mitmed meetodid põhinevad SQL päringulausetel.
+ ******************************************************************/
 public class Andmebaas implements AutoCloseable {
     private Connection andmebaas;
     private String andmebaasiNimi;

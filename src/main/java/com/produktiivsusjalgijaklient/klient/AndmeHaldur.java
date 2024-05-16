@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+/****************************************************
+ * Andmehalduri interface, vajalik kasutaja loomise
+ * ja sisse logimise jaoks
+ ****************************************************/
 public interface AndmeHaldur {
     public enum autentimisOnnestumus {
         AUTENDITUD,

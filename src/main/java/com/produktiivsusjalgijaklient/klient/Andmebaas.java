@@ -154,6 +154,20 @@ public class Andmebaas implements AutoCloseable {
         return kasutajaID;
     }
 
+    public int tagastaUlesandeProduktiivneAeg(int ulesanneID) throws SQLException {
+        final String tagastaUlesandeProduktiivneAeg =
+                "SELECT SUM(produktiivne_aeg_sekundites) " +
+                        "FROM produktiivne_aeg " +
+                        "WHERE ulesanne_id=? ";
+
+        try (PreparedStatement tagastaUlesandeProduktiivneAegLause = andmebaas.prepareStatement(tagastaUlesandeProduktiivneAeg)) {
+            tagastaUlesandeProduktiivneAegLause.setInt(1, ulesanneID);
+            ResultSet tagastus = tagastaUlesandeProduktiivneAegLause.executeQuery();
+            tagastus.next();
+            return tagastus.getInt("produktiivne_aeg_sekundites");
+        }
+    }
+
     public boolean kasKasutajanimiOlemas(String kasutajaNimi) throws SQLException {
         final String kontrolliUnikaalsust =
                 "SELECT COUNT(*) AS kasutajate_arv " +

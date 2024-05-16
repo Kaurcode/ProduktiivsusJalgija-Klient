@@ -739,7 +739,7 @@ public class MainUI extends Application {
         juur.getChildren().addAll(nupp, logid);
 
         Scene stseen = new Scene(juur);
-        stseen.getStylesheets().add("produktiivsustracker/server/Teema.css");
+        stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Taimer.css");
         return stseen;
     }
 

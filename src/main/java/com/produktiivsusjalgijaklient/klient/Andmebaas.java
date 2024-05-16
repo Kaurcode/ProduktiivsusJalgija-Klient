@@ -103,6 +103,13 @@ public class Andmebaas implements AutoCloseable {
 
     public void looProduktiivsusAegOlem() throws SQLException {
         final String tabeliNimi = "produktiivne_aeg";
+        final String kustutaProduktiivsusAegOlem =
+                "DROP TABLE IF EXISTS produktiivne_aeg;";
+
+        try (PreparedStatement kustutaTabelLause = andmebaas.prepareStatement(kustutaProduktiivsusAegOlem)) {
+            kustutaTabelLause.executeUpdate();
+        }
+
 
         if (kasOlemOlemas(tabeliNimi)) {
             System.out.printf("%s olem juba olemas\n", tabeliNimi);
@@ -113,7 +120,7 @@ public class Andmebaas implements AutoCloseable {
                 "CREATE TABLE " + tabeliNimi + " (" +
                         "produktiivne_aeg_id INTEGER PRIMARY KEY NOT NULL UNIQUE," +
                         "kuupaev INTEGER NOT NULL," +
-                        "produktiivne_aeg INTERVAL," +
+                        "produktiivne_aeg_sekundites INTEGER," +
                         "ulesanne_id INT NOT NULL," +
                         "FOREIGN KEY (ulesanne_id) REFERENCES ulesanded(ulesanne_id)" +
                         ");";
@@ -121,6 +128,19 @@ public class Andmebaas implements AutoCloseable {
         try (PreparedStatement looProduktiivsusAegOlemLause = andmebaas.prepareStatement(looProduktiivsusAegOlem)) {
             looProduktiivsusAegOlemLause.executeUpdate();
             System.out.printf("%s olem loodud\n", tabeliNimi);
+        }
+    }
+
+    public void lisaUusProduktiivsusAeg(Timestamp kuupaev, int aegSekundites, int ulesanneID) throws SQLException {
+        final String lisaUusProduktiivsusAeg =
+                "INSERT INTO produktiivne_aeg (kuupaev, produktiivne_aeg_sekundites, ulesanne_id) " +
+                        "VALUES (?, ?, ?)";
+
+        try (PreparedStatement lisaUusProduktiivsusAegLause = andmebaas.prepareStatement(lisaUusProduktiivsusAeg)) {
+            lisaUusProduktiivsusAegLause.setLong(1, kuupaev.getTime());
+            lisaUusProduktiivsusAegLause.setInt(2, aegSekundites);
+            lisaUusProduktiivsusAegLause.setInt(3, ulesanneID);
+            lisaUusProduktiivsusAegLause.executeUpdate();
         }
     }
 

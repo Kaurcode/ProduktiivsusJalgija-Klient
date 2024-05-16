@@ -2,6 +2,8 @@ package com.produktiivsusjalgijaklient.klient;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
@@ -95,6 +97,15 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
             eesmark.setUlesanded(tagastaUlesanded(eesmark.getEesmargiID()));
         }
         return eesmargid;
+    }
+
+    public void lisaProduktiivneAeg(int aegSekundites, int ulesanneID) throws SQLException, IOException {
+        try {
+            andmebaas.lisaUusProduktiivsusAeg(Timestamp.valueOf(LocalDateTime.now()), aegSekundites, ulesanneID);
+        } catch (SQLException viga) {
+            logija.kirjutaErind(viga, "Produktiivsusaja loomisel tekkis viga");
+            throw viga;
+        }
     }
 
     public int getKasutajaID() {

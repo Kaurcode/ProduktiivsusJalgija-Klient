@@ -12,7 +12,9 @@ import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -490,8 +492,11 @@ public class MainUI extends Application {
 
         valikuVaade.setPadding(new Insets(5));
         valikuVaade.setOnMouseClicked(mouseEvent -> {
-            System.out.println("Valitud");
-            kuvaTaimer(new Stage());
+            try {
+                taimeriEkraan(juur.getScene(), juur.getScene().getWindow(), andmeHaldur, andmeHaldur.tagastaEesmargid(andmeHaldur.getKasutajaID()), eesmark);
+            } catch (SQLException | IOException e) {
+                throw new RuntimeException(e);
+            }
         });
 
         Button looUlesanne = new Button("Loo uus ülesanne");
@@ -692,5 +697,145 @@ public class MainUI extends Application {
         super.stop();
     }
 
+    public void kuvaTaimer(Stage primaryStage) {
+        Font digitalFont = Font.loadFont(getClass().getResourceAsStream("digital-7.ttf"), 100);
+        BorderPane juur = new BorderPane();
+        taimer = new Taimer(10);
+        Label taimeriSilt = new Label();
+        taimeriSilt.textProperty().bind(Bindings.createStringBinding(() -> {
+            int aegSekundites = taimer.getAegSekundites();
+            String mark;
+            if (Integer.signum(aegSekundites) == -1) {
+                mark = "+";
+            } else {
+                mark = "";
+            }
+            aegSekundites = Math.abs(aegSekundites);
+            int minuteid = aegSekundites / 60;
+            int sekundeid = aegSekundites % 60;
+            return String.format("%s%02d:%02d", mark, minuteid, sekundeid);
+        }, taimer.aegSekunditesProperty()));
 
+        taimeriSilt.setFont(digitalFont);
+
+        juur.setCenter(taimeriSilt);
+        Button lopetaNupp = new Button("Stop");
+        lopetaNupp.getStyleClass().add("lopeta-nupp");
+        lopetaNupp.setOnAction(e -> {taimer.close(); primaryStage.close();});
+
+        BorderPane.setAlignment(lopetaNupp, Pos.CENTER);
+        juur.setBottom(lopetaNupp);
+
+
+        juur.setBackground(Background.EMPTY);
+
+        Scene stseen = new Scene(juur, 400, 200);
+        stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Taimer.css");
+        primaryStage.setScene(stseen);
+        primaryStage.show();
+
+        taimer.alustaLoendust();
+    }
+
+    private void taimeriEkraan(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> andmed, Eesmark eesmark) {
+
+        Scene uus = taimerUI(eelmine, omanik, andmeHaldur, andmed, eesmark);
+
+        Stage peaLava = (Stage) omanik;
+        peaLava.close();
+
+        Stage uusLava = new Stage();
+        uusLava.setScene(uus);
+        uusLava.initOwner(omanik);
+        uusLava.initModality(Modality.WINDOW_MODAL);
+        uusLava.show();
+    }
+
+    private Scene taimerUI(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> andmed, Eesmark eesmark) {
+        VBox juur = new VBox();
+
+        juur.setPadding(new Insets(15));
+        juur.setSpacing(20);
+        juur.setAlignment(Pos.CENTER);
+
+        juur.setPrefHeight(200);
+        juur.setPrefWidth(500);
+
+        Label paiseTekst = new Label("Taimeri loomine");
+        juur.getChildren().add(paiseTekst);
+
+        // Ankeet
+
+        GridPane infoSisend = new GridPane();
+        infoSisend.setAlignment(Pos.BASELINE_LEFT);
+        infoSisend.setHgap(20);
+        infoSisend.setVgap(10);
+
+        Text tekst = new Text("Seda ülesannet oled juba teinud" + " placeholder minutit");
+        tekst.setFill(Color.WHITE);
+
+        Label prodAegSilt = new Label("Produktiivsusaeg:");
+        TextField prodAegVali = new TextField();
+
+        Label puhkeAegSilt = new Label("Puhkeaeg:");
+        PasswordField puhkeAegVali = new PasswordField();
+
+        Label[] sildid = new Label[] {prodAegSilt, puhkeAegSilt};
+        TextField[] tekstiValjad = new TextField[] {prodAegVali, puhkeAegVali};
+
+        final int[] fokuseeritudVali = {0};
+
+        EventHandler<KeyEvent> nupuVajutus = keyEvent -> {
+            if (keyEvent.getCode() == KeyCode.ENTER) {
+                fokuseeritudVali[0]++;
+                fokuseeritudVali[0] = Math.min(fokuseeritudVali[0], tekstiValjad.length - 1);
+                keyEvent.consume();
+            } else if (keyEvent.getCode() == KeyCode.DOWN) {
+                fokuseeritudVali[0]++;
+                fokuseeritudVali[0] = Math.min(fokuseeritudVali[0], tekstiValjad.length - 1);
+                keyEvent.consume();
+            } else if (keyEvent.getCode() == KeyCode.UP) {
+                fokuseeritudVali[0]--;
+                fokuseeritudVali[0] = Math.max(fokuseeritudVali[0], 0);
+                keyEvent.consume();
+            }
+            tekstiValjad[fokuseeritudVali[0]].requestFocus();
+        };
+
+        for (int elemendiNr = 0; elemendiNr < tekstiValjad.length; elemendiNr++) {
+            infoSisend.addRow(elemendiNr, sildid[elemendiNr], tekstiValjad[elemendiNr]);
+            GridPane.setHgrow(tekstiValjad[elemendiNr], Priority.ALWAYS);
+
+            tekstiValjad[elemendiNr].setOnKeyPressed(nupuVajutus);
+
+            final int finalElemendiNr = elemendiNr;
+            tekstiValjad[elemendiNr].focusedProperty().addListener((observableValue, vanaVaartus, uusVaartus) -> {
+                if (uusVaartus) {
+                    fokuseeritudVali[0] = finalElemendiNr;
+                }
+            });
+        }
+
+        juur.getChildren().addAll(infoSisend, tekst);
+
+        Button edasiNupp = new Button("Edasi");
+        edasiNupp.setOnAction(actionEvent -> {
+            kuvaTaimer(new Stage());
+        });
+
+        Button tagasi = new Button("Tagasi");
+        tagasi.setOnAction(actionEvent -> {
+            try {
+                ulesanneteUI(tagasi.getScene(), tagasi.getScene().getWindow(), andmeHaldur, eesmark, andmed);
+            } catch (SQLException | IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        juur.getChildren().addAll(edasiNupp, tagasi);
+        Scene stseen = new Scene(juur);
+        stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Teema.css");
+
+        return stseen;
+    }
 }

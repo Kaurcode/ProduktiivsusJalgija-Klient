@@ -785,43 +785,7 @@ public class MainUI extends Application {
         Label prodAegSilt = new Label("Produktiivsusaeg (minutites):");
         TextField prodAegVali = new TextField();
 
-        Label[] sildid = new Label[] {prodAegSilt};
-        TextField[] tekstiValjad = new TextField[] {prodAegVali};
-
-        final int[] fokuseeritudVali = {0};
-
-        EventHandler<KeyEvent> nupuVajutus = keyEvent -> {
-            if (keyEvent.getCode() == KeyCode.ENTER) {
-                fokuseeritudVali[0]++;
-                fokuseeritudVali[0] = Math.min(fokuseeritudVali[0], tekstiValjad.length - 1);
-                keyEvent.consume();
-            } else if (keyEvent.getCode() == KeyCode.DOWN) {
-                fokuseeritudVali[0]++;
-                fokuseeritudVali[0] = Math.min(fokuseeritudVali[0], tekstiValjad.length - 1);
-                keyEvent.consume();
-            } else if (keyEvent.getCode() == KeyCode.UP) {
-                fokuseeritudVali[0]--;
-                fokuseeritudVali[0] = Math.max(fokuseeritudVali[0], 0);
-                keyEvent.consume();
-            }
-            tekstiValjad[fokuseeritudVali[0]].requestFocus();
-        };
-
-        for (int elemendiNr = 0; elemendiNr < tekstiValjad.length; elemendiNr++) {
-            infoSisend.addRow(elemendiNr, sildid[elemendiNr], tekstiValjad[elemendiNr]);
-            GridPane.setHgrow(tekstiValjad[elemendiNr], Priority.ALWAYS);
-
-            tekstiValjad[elemendiNr].setOnKeyPressed(nupuVajutus);
-
-            final int finalElemendiNr = elemendiNr;
-            tekstiValjad[elemendiNr].focusedProperty().addListener((observableValue, vanaVaartus, uusVaartus) -> {
-                if (uusVaartus) {
-                    fokuseeritudVali[0] = finalElemendiNr;
-                }
-            });
-        }
-
-        juur.getChildren().addAll(infoSisend, tekst);
+        juur.getChildren().addAll(prodAegSilt, prodAegVali, tekst);
 
         Button edasiNupp = new Button("Edasi");
         edasiNupp.setOnAction(actionEvent -> {

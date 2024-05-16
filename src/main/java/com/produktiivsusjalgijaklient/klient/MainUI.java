@@ -697,16 +697,18 @@ public class MainUI extends Application {
         super.stop();
     }
 
-    public void kuvaTaimer(Stage primaryStage) {
+    public void kuvaTaimer(Stage primaryStage, int aeg) {
         Font digitalFont = Font.loadFont(getClass().getResourceAsStream("digital-7.ttf"), 100);
         BorderPane juur = new BorderPane();
-        taimer = new Taimer(10);
+        aeg = aeg * 60;
+        taimer = new Taimer(aeg);
         Label taimeriSilt = new Label();
         taimeriSilt.textProperty().bind(Bindings.createStringBinding(() -> {
             int aegSekundites = taimer.getAegSekundites();
             String mark;
             if (Integer.signum(aegSekundites) == -1) {
                 mark = "+";
+                primaryStage.close();
             } else {
                 mark = "";
             }
@@ -820,7 +822,7 @@ public class MainUI extends Application {
 
         Button edasiNupp = new Button("Edasi");
         edasiNupp.setOnAction(actionEvent -> {
-            kuvaTaimer(new Stage());
+            kuvaTaimer(new Stage(), Integer.parseInt(prodAegVali.getText()));
         });
 
         Button tagasi = new Button("Tagasi");

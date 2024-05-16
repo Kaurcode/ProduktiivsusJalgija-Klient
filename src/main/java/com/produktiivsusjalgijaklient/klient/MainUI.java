@@ -491,6 +491,7 @@ public class MainUI extends Application {
         valikuVaade.setPadding(new Insets(5));
         valikuVaade.setOnMouseClicked(mouseEvent -> {
             System.out.println("Valitud");
+            kuvaTaimer(new Stage());
         });
 
         Button looUlesanne = new Button("Loo uus ülesanne");
@@ -732,5 +733,45 @@ public class MainUI extends Application {
             andmeHaldur.close();
         }
         super.stop();
+    }
+
+    public void kuvaTaimer(Stage primaryStage) {
+        Font digitalFont = Font.loadFont(getClass().getResourceAsStream("digital-7.ttf"), 100);
+        BorderPane juur = new BorderPane();
+        taimer = new Taimer(10);
+        Label taimeriSilt = new Label();
+        taimeriSilt.textProperty().bind(Bindings.createStringBinding(() -> {
+            int aegSekundites = taimer.getAegSekundites();
+            String mark;
+            if (Integer.signum(aegSekundites) == -1) {
+                mark = "+";
+            } else {
+                mark = "";
+            }
+            aegSekundites = Math.abs(aegSekundites);
+            int minuteid = aegSekundites / 60;
+            int sekundeid = aegSekundites % 60;
+            return String.format("%s%02d:%02d", mark, minuteid, sekundeid);
+        }, taimer.aegSekunditesProperty()));
+
+        taimeriSilt.setFont(digitalFont);
+
+        juur.setCenter(taimeriSilt);
+        Button lopetaNupp = new Button("Stop");
+        lopetaNupp.getStyleClass().add("lopeta-nupp");
+        lopetaNupp.setOnAction(e -> {taimer.close(); primaryStage.close();});
+
+        BorderPane.setAlignment(lopetaNupp, Pos.CENTER);
+        juur.setBottom(lopetaNupp);
+
+
+        juur.setBackground(Background.EMPTY);
+
+        Scene stseen = new Scene(juur, 400, 200);
+        stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Taimer.css");
+        primaryStage.setScene(stseen);
+        primaryStage.show();
+
+        taimer.alustaLoendust();
     }
 }

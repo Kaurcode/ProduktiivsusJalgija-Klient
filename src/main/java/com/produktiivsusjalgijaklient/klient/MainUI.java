@@ -774,14 +774,16 @@ public class MainUI extends Application {
         infoSisend.setHgap(20);
         infoSisend.setVgap(10);
 
-        System.out.println(andmeHaldur.tagastaUlesandeProduktiivneAeg(ulesanne.getUlesandeID()));
-        Text tekst = new Text("Seda ülesannet oled juba teinud " + andmeHaldur.getAndmebaas().tagastaUlesandeProduktiivneAeg(ulesanne.getUlesandeID()) + " minutit");
+        System.out.println(ulesanne.getUlesandeID());
+        System.out.println( andmeHaldur.tagastaUlesandeProduktiivneAeg(ulesanne.getUlesandeID()));
+
+        Text tekst = new Text("Seda ülesannet oled juba teinud " + andmeHaldur.tagastaUlesandeProduktiivneAeg(ulesanne.getUlesandeID()) + " minutit");
         tekst.setFill(Color.WHITE);
 
-        Label prodAegSilt = new Label("Produktiivsusaeg:");
+        Label prodAegSilt = new Label("Produktiivsusaeg (minutites):");
         TextField prodAegVali = new TextField();
 
-        Label puhkeAegSilt = new Label("Puhkeaeg:");
+        Label puhkeAegSilt = new Label("Puhkeaeg (minutites):");
         PasswordField puhkeAegVali = new PasswordField();
 
         Label[] sildid = new Label[] {prodAegSilt, puhkeAegSilt};
@@ -824,6 +826,11 @@ public class MainUI extends Application {
 
         Button edasiNupp = new Button("Edasi");
         edasiNupp.setOnAction(actionEvent -> {
+            try {
+                andmeHaldur.lisaProduktiivneAeg((Integer.parseInt(prodAegVali.getText()) * 60), ulesanne.getUlesandeID());
+            } catch (SQLException | IOException e) {
+                throw new RuntimeException(e);
+            }
             kuvaTaimer(new Stage(), Integer.parseInt(prodAegVali.getText()));
         });
 

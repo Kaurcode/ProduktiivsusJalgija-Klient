@@ -206,8 +206,16 @@ public class MainUI extends Application {
                 AndmeHaldur.autentimisOnnestumus autentimisOnnestumus = andmeHaldur.logiSisse(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray());
                 switch (autentimisOnnestumus) {
                     case AUTENDITUD -> eesmarkideUI(edasiNupp.getScene(), edasiNupp.getScene().getWindow(), andmeHaldur, valikud);
-                    case VALE_KASUTAJANIMI -> System.out.println("Kasutajanimi on vale");
-                    case VALE_PAROOL -> System.out.println("Parool on vale");
+                    case VALE_KASUTAJANIMI -> {
+                        Stage veateade = new Stage();
+                        veateade.setScene(vigaUI("Kasutaja viga", "Kasutajanimi on vale", false));
+                        veateade.show();
+                    }
+                    case VALE_PAROOL -> {
+                        Stage veateade = new Stage();
+                        veateade.setScene(vigaUI("Kasutaja viga", "Sisestatud parool on vale", false));
+                        veateade.show();
+                    }
                 }
             } catch (IOException e) {
                 Stage veateade = new Stage();
@@ -327,8 +335,16 @@ public class MainUI extends Application {
             if (!kasutajaNimeVali.getText().isEmpty() || !parooliVali.getText().isEmpty()) {
                 try {
                     switch (andmeHaldur.looKasutaja(kasutajaNimeVali.getText(), parooliVali.getText().toCharArray())) {
-                        case MITTEUNIKAALNE_KASUTAJANIMI -> System.out.println("Kasutajanimi peab olema unikaalne");
-                    case KASUTAJA_LOODUD -> System.out.println("Kasutaja loodud");
+                        case MITTEUNIKAALNE_KASUTAJANIMI -> {
+                            Stage veateade = new Stage();
+                            veateade.setScene(vigaUI("Kasutaja viga", "Kasutajanimi peab olema unikaalne", false));
+                            veateade.show();
+                        }
+                    case KASUTAJA_LOODUD -> {
+                        Stage veateade = new Stage();
+                        veateade.setScene(vigaUI("Kasutaja loomine edukas", "Uus kasutaja on edukalt loodud", false));
+                        veateade.show();
+                    }
                 }
             } catch (IOException e) {
                 Stage veateade = new Stage();
@@ -352,7 +368,9 @@ public class MainUI extends Application {
                 veateade.show();
                 }
             } else {
-                System.out.println("Väljad ei tohi olla tühjad");
+                Stage veateade = new Stage();
+                veateade.setScene(vigaUI("Kasutaja viga", "Kasutaja väljad ei tohi olla tühjad", false));
+                veateade.show();
             }
         });
 
@@ -528,7 +546,9 @@ public class MainUI extends Application {
                 }
                 valikud.add(new Eesmark(eesmarkID, eesmargiVali.getText(), false));
             } else {
-                System.out.println("Tühi väli ei sobi");
+                Stage veateade = new Stage();
+                veateade.setScene(vigaUI("Eesmärgi viga", "Eesmärgi väli ei tohi olla tühi", false));
+                veateade.show();
             }
         });
 
@@ -588,7 +608,9 @@ public class MainUI extends Application {
                 }
                 valikud.add(new Ulesanne(ülesandeID, ulesanneVali.getText()));
             } else {
-                System.out.println("Tühi väli ei sobi");
+                Stage veateade = new Stage();
+                veateade.setScene(vigaUI("Ülesande viga", "Ülesande väli ei tohi olla tühi", false));
+                veateade.show();
             }
         });
 
@@ -740,12 +762,18 @@ public class MainUI extends Application {
 
         Button edasiNupp = new Button("Edasi");
         edasiNupp.setOnAction(actionEvent -> {
-            try {
-                andmeHaldur.lisaProduktiivneAeg(Integer.parseInt(prodAegVali.getText()) , ulesanne.getUlesandeID());
-            } catch (SQLException | IOException e) {
-                throw new RuntimeException(e);
+            if (!prodAegVali.getText().isEmpty()) {
+                try {
+                    andmeHaldur.lisaProduktiivneAeg(Integer.parseInt(prodAegVali.getText()), ulesanne.getUlesandeID());
+                } catch (SQLException | IOException e) {
+                    throw new RuntimeException(e);
+                }
+                kuvaTaimer(new Stage(), Integer.parseInt(prodAegVali.getText()));
+            } else {
+                Stage veateade = new Stage();
+                veateade.setScene(vigaUI("Taimeri viga", "Taimeri väli ei tohi olla tühi", false));
+                veateade.show();
             }
-            kuvaTaimer(new Stage(), Integer.parseInt(prodAegVali.getText()));
         });
 
         Button tagasi = new Button("Tagasi");

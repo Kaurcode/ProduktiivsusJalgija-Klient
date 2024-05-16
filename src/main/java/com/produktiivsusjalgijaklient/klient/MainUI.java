@@ -784,7 +784,7 @@ public class MainUI extends Application {
         TextField prodAegVali = new TextField();
 
         Label puhkeAegSilt = new Label("Puhkeaeg (minutites):");
-        PasswordField puhkeAegVali = new PasswordField();
+        TextField puhkeAegVali = new TextField();
 
         Label[] sildid = new Label[] {prodAegSilt, puhkeAegSilt};
         TextField[] tekstiValjad = new TextField[] {prodAegVali, puhkeAegVali};
@@ -827,7 +827,7 @@ public class MainUI extends Application {
         Button edasiNupp = new Button("Edasi");
         edasiNupp.setOnAction(actionEvent -> {
             try {
-                andmeHaldur.lisaProduktiivneAeg((Integer.parseInt(prodAegVali.getText()) * 60), ulesanne.getUlesandeID());
+                andmeHaldur.lisaProduktiivneAeg(Integer.parseInt(prodAegVali.getText()) , ulesanne.getUlesandeID());
             } catch (SQLException | IOException e) {
                 throw new RuntimeException(e);
             }

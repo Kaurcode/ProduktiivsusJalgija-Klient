@@ -35,6 +35,7 @@ public class Logija implements AutoCloseable {
     }
 
     public String loeViimased10Rida() throws IOException {
+        failiKirjutaja.flush();
         String failinimi = "logi.txt";
         StringBuilder logid = new StringBuilder();
         int ridu = 10;

@@ -15,7 +15,7 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
         logija = new Logija();
         try {
             this.andmebaas = new Andmebaas(andmebaasiNimi);
-            logija.kirjutaLogi("Andmebaasiga ühendus loodud");
+            logija.kirjutaLogi("Andmebaasiga uhendus loodud");
         } catch (SQLException viga) {
             logija.kirjutaErind(viga, "Andmebaasi klassi loomine");
             throw viga;
@@ -86,10 +86,10 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
     public ArrayList<Ulesanne> tagastaUlesanded(int eesmargiID) throws SQLException, IOException {
         try {
             ArrayList<Ulesanne> ulesanded = andmebaas.tagastaUlesanneteOlemid(eesmargiID);
-            logija.kirjutaLogi("Ülesanded edukalt laetud (Eesmärgi ID: %d)".formatted(eesmargiID));
+            logija.kirjutaLogi("ulesanded edukalt laetud (Eesmargi ID: %d)".formatted(eesmargiID));
             return ulesanded;
         } catch (SQLException viga) {
-            logija.kirjutaErind(viga, "Ülesannete olemite tagastamine");
+            logija.kirjutaErind(viga, "ulesannete olemite tagastamine");
             throw viga;
         }
     }
@@ -98,9 +98,9 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
         ArrayList<Eesmark> eesmargid;
         try {
             eesmargid = andmebaas.tagastaEesmarkideOlemid(kasutajaID);
-            logija.kirjutaLogi("Eesmärgid edukalt laetud (Kasutaja ID: %d)".formatted(kasutajaID));
+            logija.kirjutaLogi("Eesmargid edukalt laetud (Kasutaja ID: %d)".formatted(kasutajaID));
         } catch (SQLException viga) {
-            logija.kirjutaErind(viga, "Eesmärkide olemite tagastamine");
+            logija.kirjutaErind(viga, "Eesmarkide olemite tagastamine");
             throw viga;
         }
         for (Eesmark eesmark : eesmargid) {
@@ -112,7 +112,7 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
     public void lisaProduktiivneAeg(int aegSekundites, int ulesanneID) throws SQLException, IOException {
         try {
             andmebaas.lisaUusProduktiivsusAeg(Timestamp.valueOf(LocalDateTime.now()), aegSekundites, ulesanneID);
-            logija.kirjutaLogi("Uus produktiivsusaeg edukalt lisatud (Ülesande ID: %d)".formatted(ulesanneID));
+            logija.kirjutaLogi("Uus produktiivsusaeg edukalt lisatud (ulesande ID: %d)".formatted(ulesanneID));
         } catch (SQLException viga) {
             logija.kirjutaErind(viga, "Produktiivsusaja loomisel tekkis viga");
             throw viga;
@@ -122,10 +122,10 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
     public int tagastaUlesandeProduktiivneAeg(int ulesandeID) throws SQLException, IOException {
         try {
             int ulesandeProduktiivneAeg = andmebaas.tagastaUlesandeProduktiivneAeg(ulesandeID);
-            logija.kirjutaLogi("Ülesande produktiivse aja summa edukalt tagastatud: (Ülesande ID: %d)".formatted(ulesandeID));
+            logija.kirjutaLogi("ulesande produktiivse aja summa edukalt tagastatud: (ulesande ID: %d)".formatted(ulesandeID));
             return ulesandeProduktiivneAeg;
         } catch (SQLException viga) {
-            logija.kirjutaErind(viga, "Ülesande, ID: %d, aja summa tagastamisel tekkis viga".formatted(ulesandeID));
+            logija.kirjutaErind(viga, "ulesande, ID: %d, aja summa tagastamisel tekkis viga".formatted(ulesandeID));
             throw viga;
         }
     }
@@ -133,7 +133,7 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
     public int tagastaEesmargiProduktiivneAeg(int eesmargiID) throws SQLException, IOException {
         try {
             int eesmargiProduktiivneAeg = andmebaas.tagastaEesmargiProduktiivneAeg(eesmargiID);
-            logija.kirjutaLogi("Eesmärgi produktiivse aja summa edukalt tagastatud: (Eesmärgi ID: %d)".formatted(eesmargiID));
+            logija.kirjutaLogi("Eesmargi produktiivse aja summa edukalt tagastatud: (Eesmargi ID: %d)".formatted(eesmargiID));
             return eesmargiProduktiivneAeg;
         } catch (SQLException viga) {
             logija.kirjutaErind(viga, "Eesmargi, ID: %d, aja summa tagastamisel tekkis viga".formatted(eesmargiID));

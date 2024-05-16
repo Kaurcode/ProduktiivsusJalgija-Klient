@@ -112,9 +112,10 @@ public class MainUI extends Application {
         Button valiEesmark = new Button("Ok");
         valiEesmark.setOnAction(actionEvent -> {
             Eesmark valitudeesmark = valikuVaade.getSelectionModel().getSelectedItem();
+            System.out.println(valitudeesmark);
             try {
                 ulesanneteUI(valiEesmark.getScene(), valiEesmark.getScene().getWindow(), andmeHaldur, valitudeesmark, finalAndmed);
-            } catch (SQLException e) {
+            } catch (SQLException | IOException e) {
                 throw new RuntimeException(e);
             }
         });
@@ -438,8 +439,8 @@ public class MainUI extends Application {
             uusLava.show();
     }
 
-    private void ulesanneteUI(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, Eesmark eesmark, ArrayList<Eesmark> andmed) throws SQLException {
-        Scene uus = kuvaulesanded(andmeHaldur, eesmark, andmed);
+    private void ulesanneteUI(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, Eesmark eesmark, ArrayList<Eesmark> andmed) throws SQLException, IOException {
+        Scene uus = kuvaulesanded(andmeHaldur, andmeHaldur.tagastaUlesanded(eesmark.getEesmargiID()), eesmark);
         Stage peaLava = (Stage) omanik;
         peaLava.close();
         Stage uusLava = new Stage();
@@ -449,10 +450,10 @@ public class MainUI extends Application {
         uusLava.show();
     }
 
-    private Scene kuvaulesanded(LokaalneAndmeHaldur andmeHaldur, ArrayList<Ulesanne> andmed, int eesmargiID) {
+    private Scene kuvaulesanded(LokaalneAndmeHaldur andmeHaldur, ArrayList<Ulesanne> andmed, Eesmark eesmark) {
         ArrayList<Ulesanne> finalAndmed = andmed;
         try {
-            andmed = andmeHaldur.getAndmebaas().tagastaUlesanneteOlemid(eesmargiID);
+            andmed = andmeHaldur.getAndmebaas().tagastaUlesanneteOlemid(eesmark.getEesmargiID());
         } catch (SQLException viga) {
             Stage veateade = new Stage();
             try {
@@ -495,14 +496,20 @@ public class MainUI extends Application {
         Button looUlesanne = new Button("Loo uus ülesanne");
         looUlesanne.setOnAction(actionEvent -> {
             ((Stage) juur.getScene().getWindow()).close();
-            uusUlesanne(looUlesanne.getScene(), looUlesanne.getScene().getWindow(), andmeHaldur, finalAndmed, andmed, eesmark);
+            try {
+                uusUlesanne(looUlesanne.getScene(), looUlesanne.getScene().getWindow(), andmeHaldur, finalAndmed, andmeHaldur.tagastaEesmargid(andmeHaldur.getKasutajaID()), eesmark);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         });
 
         Button tagasi = new Button("Tagasi");
         tagasi.setOnAction(actionEvent -> {
             ((Stage) juur.getScene().getWindow()).close();
             try {
-                eesmarkideUI(tagasi.getScene(), tagasi.getScene().getWindow(), andmeHaldur, andmed);
+                eesmarkideUI(tagasi.getScene(), tagasi.getScene().getWindow(), andmeHaldur, andmeHaldur.tagastaEesmargid(andmeHaldur.getKasutajaID()));
             } catch (SQLException | IOException e) {
                 throw new RuntimeException(e);
             }
@@ -631,7 +638,7 @@ public class MainUI extends Application {
             ((Stage) juur.getScene().getWindow()).close();
             try {
                 ulesanneteUI(tagasi.getScene(), tagasi.getScene().getWindow(), andmeHaldur, eesmark, eesmargid);
-            } catch (SQLException e) {
+            } catch (SQLException | IOException e) {
                 throw new RuntimeException(e);
             }
         });

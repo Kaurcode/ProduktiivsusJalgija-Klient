@@ -8,3 +8,26 @@
 .label {
     -fx-text-fill: #FFFFFF;
 }
+
+.list-cell {
+    -fx-background-radius: 10;
+    -fx-background-color: #3a3a3a;
+    -fx-text-fill: #FFFFFF;
+
+    -fx-padding: 10 10 10 20px;
+    -fx-border-insets: 5px;
+    -fx-background-insets: 5px;
+}
+
+.list-cell:hover {
+    -fx-background-color: #4d4d4d;
+    -fx-cursor: hand;
+}
+
+.list-cell:empty {
+    -fx-background-color: transparent;
+}
+
+.list-view {
+    -fx-background-color: #242424;
+}

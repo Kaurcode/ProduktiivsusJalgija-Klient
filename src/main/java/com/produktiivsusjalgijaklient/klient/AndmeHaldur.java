@@ -19,5 +19,5 @@ public interface AndmeHaldur {
     public kasutajaLoomisOnnestumus looKasutaja(String kasutajaNimi, char[] parool) throws SQLException, IOException;
     public autentimisOnnestumus logiSisse(String kasutajaNimi, char[] parool) throws SQLException, IOException;
 
-    public ArrayList<Ulesanne> tagastaUlesanded(int eesmargiID) throws IOException, SQLException;
+    public ArrayList<Ulesanne> tagastaUlesanded(int eesmargiID) throws SQLException, IOException;
 }

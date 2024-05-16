@@ -50,8 +50,4 @@ public class Eesmark {
     public void setUlesanded(ArrayList<Ulesanne> ulesanded) {
         this.ulesanded = ulesanded;
     }
-
-    public ArrayList<Ulesanne> getUlesanded() {
-        return ulesanded;
-    }
 }

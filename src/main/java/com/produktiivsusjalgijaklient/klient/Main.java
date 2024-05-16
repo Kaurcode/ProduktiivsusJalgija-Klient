@@ -14,7 +14,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         try (LokaalneAndmeHaldur andmeHaldur = new LokaalneAndmeHaldur("produktiivsusjalgija")) {
-            andmeHaldur.looKasutaja("Hannes", "parool".toCharArray());
+            System.out.println(andmeHaldur.logiSisse("Kaur", "TestParool".toCharArray()));
             andmeHaldur.kirjutaLogi("Test");
         }
     }

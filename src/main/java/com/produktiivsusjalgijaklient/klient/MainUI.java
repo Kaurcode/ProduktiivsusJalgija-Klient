@@ -1,20 +1,17 @@
 package com.produktiivsusjalgijaklient.klient;
 
 import javafx.application.Application;
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
-import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -28,6 +25,7 @@ import java.util.ArrayList;
 public class MainUI extends Application {
 
     private LokaalneAndmeHaldur andmeHaldur;
+    private Taimer taimer;
 
 
     public static void main(String[] args) {
@@ -106,28 +104,21 @@ public class MainUI extends Application {
                 };
             }
         });
-        valikuVaade.setOnMouseClicked(mouseEvent -> {
-            Eesmark valitudeesmark = valikuVaade.getSelectionModel().getSelectedItem();
-            try {
-                ulesanneteUI(valikuVaade.getScene(), valikuVaade.getScene().getWindow(), andmeHaldur, valitudeesmark, finalAndmed);
-            } catch (SQLException | IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
 
         valikuVaade.setPadding(new Insets(5));
 
         VBox juur = new VBox();
 
-        /*Button valiEesmark = new Button("Ok");
+        Button valiEesmark = new Button("Ok");
         valiEesmark.setOnAction(actionEvent -> {
             Eesmark valitudeesmark = valikuVaade.getSelectionModel().getSelectedItem();
+            System.out.println(valitudeesmark.getEesmargiNimi());
             try {
                 ulesanneteUI(valiEesmark.getScene(), valiEesmark.getScene().getWindow(), andmeHaldur, valitudeesmark, finalAndmed);
             } catch (SQLException | IOException e) {
                 throw new RuntimeException(e);
             }
-        });*/
+        });
 
         Button looEesmark = new Button("Loo uus eesmärk");
         looEesmark.setOnAction(actionEvent -> {
@@ -141,10 +132,10 @@ public class MainUI extends Application {
             algneStseen(andmeHaldur, finalAndmed);
         });
 
-        juur.getChildren().addAll(valikuVaade, looEesmark, tagasi);
+        juur.getChildren().addAll(valikuVaade, valiEesmark, looEesmark, tagasi);
         juur.setAlignment(Pos.CENTER);
         juur.setSpacing(10);
-        //VBox.setMargin(valiEesmark, new Insets(10, 0, 20, 0));
+        VBox.setMargin(valiEesmark, new Insets(10, 0, 20, 0));
         VBox.setMargin(looEesmark, new Insets(10, 0, 20, 0));
         VBox.setMargin(tagasi, new Insets(10, 0, 20, 0));
         Scene stseen = new Scene(juur);
@@ -501,9 +492,8 @@ public class MainUI extends Application {
         });
 
         valikuVaade.setPadding(new Insets(5));
-        valikuVaade.setOnMouseClicked(mouseEvent -> {
-            System.out.println("Valitud");
-        });
+
+        Button valiUlesanne = new Button("Ok");
 
         Button looUlesanne = new Button("Loo uus ülesanne");
         looUlesanne.setOnAction(actionEvent -> {
@@ -525,9 +515,10 @@ public class MainUI extends Application {
             }
         });
 
-        juur.getChildren().addAll(valikuVaade, looUlesanne, tagasi);
+        juur.getChildren().addAll(valikuVaade, valiUlesanne, looUlesanne, tagasi);
         juur.setAlignment(Pos.CENTER);
         juur.setSpacing(10);
+        VBox.setMargin(valiUlesanne, new Insets(10, 0, 20, 0));
         VBox.setMargin(looUlesanne, new Insets(10, 0, 20, 0));
         VBox.setMargin(tagasi, new Insets(10, 0, 20, 0));
         Scene stseen = new Scene(juur);
@@ -573,16 +564,8 @@ public class MainUI extends Application {
                 int eesmarkID = 0;
                 try {
                     eesmarkID = andmeHaldur.getAndmebaas().lisaUusEesmark(eesmargiVali.getText(), andmeHaldur.getKasutajaID());
-                } catch (SQLException viga) {
-                    Stage veateade = new Stage();
-                    try {
-                        andmeHaldur.kirjutaErind(viga, "Viga ulesanneteolemite tagastamisel");
-                    } catch (IOException logimisViga) {
-                        throw new RuntimeException(viga);
-                    }
-                    veateade.setScene(vigaUI("Viga andmebaasist ulesanneteolemite tagastamisel",
-                            viga.getMessage(), false));
-                    veateade.show();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
                 }
                 valikud.add(new Eesmark(eesmarkID, eesmargiVali.getText(), false));
             } else {
@@ -700,6 +683,49 @@ public class MainUI extends Application {
 
         Scene stseen = new Scene(juur);
         stseen.getStylesheets().add("produktiivsustracker/server/Teema.css");
+        return stseen;
+    }
+
+    private Scene taimerUI() {
+        Font digitalFont = Font.loadFont(getClass().getResourceAsStream("digital-7.ttf"), 100);
+        BorderPane juur = new BorderPane();
+        taimer = new Taimer(10);
+        Label taimeriSilt = new Label();
+        taimeriSilt.textProperty().bind(Bindings.createStringBinding(() -> {
+            int aegSekundites = taimer.getAegSekundites();
+            String mark;
+            if (Integer.signum(aegSekundites) == -1) {
+                mark = "+";
+            } else {
+                mark = "";
+            }
+            aegSekundites = Math.abs(aegSekundites);
+            int minuteid = aegSekundites / 60;
+            int sekundeid = aegSekundites % 60;
+            return String.format("%s%02d:%02d", mark, minuteid, sekundeid);
+        }, taimer.aegSekunditesProperty()));
+
+        taimeriSilt.setFont(digitalFont);
+
+        juur.setCenter(taimeriSilt);
+        Button lopetaNupp = new Button("Stop");
+        lopetaNupp.getStyleClass().add("lopeta-nupp");
+        lopetaNupp.setOnAction(e -> {
+            taimer.close();
+            Stage lava = (Stage) lopetaNupp.getScene().getWindow();
+            lava.close();
+        });
+
+        BorderPane.setAlignment(lopetaNupp, Pos.CENTER);
+        juur.setBottom(lopetaNupp);
+
+
+        juur.setBackground(Background.EMPTY);
+
+        Scene stseen = new Scene(juur, 400, 200);
+        stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Taimer.css");
+
+        taimer.alustaLoendust();
         return stseen;
     }
 

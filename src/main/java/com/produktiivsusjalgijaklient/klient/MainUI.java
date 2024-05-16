@@ -25,6 +25,12 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+/******************************************************************
+ * Tegemist on suure koodiga, kuid paljud
+ * meetodid on sarnase ülesehitusega. Programm avab mitmeid aknaid,
+ * mistõttu edasi liikudes tekib meetoditel parameetreid juurde.
+ ******************************************************************/
+
 public class MainUI extends Application {
 
     private LokaalneAndmeHaldur andmeHaldur;
@@ -35,13 +41,16 @@ public class MainUI extends Application {
         launch(args);
     }
 
+    /********
+     * Meetod, mis käivitab andmehalduri andmebaasile ja avab esimese sisselogimis ekraani
+     * @param primaryStage
+     */
     @Override
     public void start(Stage primaryStage) {
         Stage peaLava = new Stage();
         try {
             andmeHaldur = new LokaalneAndmeHaldur("produktiivsusjalgija");
             ArrayList<Eesmark> andmed = new ArrayList<>();
-            //ObservableList<Eesmark> valikud = FXCollections.observableArrayList(andmed);
             peaLava.setScene(sisselogimisUI(andmeHaldur, andmed));
             peaLava.setTitle("Sisselogimine");
             peaLava.show();
@@ -58,13 +67,15 @@ public class MainUI extends Application {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        /*ArrayList<String> andmed = new ArrayList<>(Arrays.asList("kasutaja", "postgre", "sql", "hannes", "kaur", "kaur2", "kaur3"));
-        ObservableList<String> valikudNaidatuna = FXCollections.observableArrayList(andmed);
-        peaLava.setScene(kuvaAndmed(valikudNaidatuna));
-        peaLava.setTitle("Katsetus");
-        peaLava.show();*/
     }
 
+    /**************
+     * Eesmärkide nimekirja meetod, võtab parameetriteks andmehalduri ja eesmärgi klassi isendite massiivi
+     * Meetodis on ActionEventid nuppudele vajutamiseks
+     * @param andmeHaldur
+     * @param andmed
+     * @return
+     */
     private Scene kuvaAndmed(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> andmed) {
         ArrayList<Eesmark> finalAndmed = andmed;
         try {
@@ -136,6 +147,13 @@ public class MainUI extends Application {
         return stseen;
     }
 
+    /**********
+     * Sisselogimisekraani stseen, klahvivajutused väljade vahel liikumiseks ning nupud uue kasutaja loomiseks
+     * ja sisse logimiseks. Sisse logimisel meetod suhtleb andmehalduriga ja autentib kasutaja andmed
+     * @param andmeHaldur
+     * @param valikud
+     * @return
+     */
     private Scene sisselogimisUI(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) {
         VBox juur = new VBox();
 
@@ -252,6 +270,14 @@ public class MainUI extends Application {
         return stseen;
     }
 
+    /*************
+     * Meetod, mis sulgeb eelneva akna ja avab uue. Selline meetod on iga uue akna avamisel ning ülesehitus on umbes sama,
+     * seega tegemist on n-ö "abimeetodiga".
+     * @param eelmine
+     * @param omanik
+     * @param andmeHaldur
+     * @param valikud
+     */
     private void looUusKasutaja(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) {
 
         Scene uus = uueKasutajaUI(eelmine, omanik, andmeHaldur, valikud);
@@ -266,6 +292,15 @@ public class MainUI extends Application {
         uusLava.show();
     }
 
+    /**************
+     * Uue kasutaja loomise stseen, kontrollib olemasolevate kasutajate nimesid ja eduka loomise korral
+     * salvestab kasutaja andmebaasi
+     * @param eelmine
+     * @param omanik
+     * @param andmeHaldur
+     * @param valikud
+     * @return
+     */
     private Scene uueKasutajaUI(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) {
         VBox juur = new VBox();
 
@@ -424,6 +459,16 @@ public class MainUI extends Application {
         uusLava.show();
     }
 
+    /***********
+     * Sarnane meetod eesmärkide kuvamisele, seekord ülesannetega. Koodis edasi minnes tekib parameetreid juurde,
+     * kuna mitmeid väljasid on vaja salvestada, et ekraanide vahel liikuda
+     * @param andmeHaldur
+     * @param andmed
+     * @param eesmark
+     * @return
+     * @throws SQLException
+     * @throws IOException
+     */
     private Scene kuvaulesanded(LokaalneAndmeHaldur andmeHaldur, ArrayList<Ulesanne> andmed, Eesmark eesmark) throws SQLException, IOException {
         VBox juur = new VBox();
 
@@ -517,6 +562,12 @@ public class MainUI extends Application {
         uusLava.show();
     }
 
+    /**********
+     * Uue eesmärgi loomise meetod, lisatud tühja välja kontroll.
+     * @param andmeHaldur
+     * @param valikud
+     * @return
+     */
     private Scene uusEesmarkUI(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) {
         VBox juur = new VBox();
 
@@ -579,6 +630,14 @@ public class MainUI extends Application {
         uusLava.show();
     }
 
+    /*********
+     * Sama meetod, mis uue eesmärgi loomise puhul
+     * @param andmeHaldur
+     * @param valikud
+     * @param eesmargid
+     * @param eesmark
+     * @return
+     */
     private Scene uusUlesanneUI(LokaalneAndmeHaldur andmeHaldur, ArrayList<Ulesanne> valikud, ArrayList<Eesmark> eesmargid, Eesmark eesmark) {
         VBox juur = new VBox();
 
@@ -631,6 +690,13 @@ public class MainUI extends Application {
         return stseen;
     }
 
+    /************
+     * Baasmeetod, mis võimaldab vigade tekkimisel anda kasutajale teada probleemist.
+     * @param paiseTekst
+     * @param veateateTekst
+     * @param fataalne
+     * @return
+     */
     public static Scene vigaUI(String paiseTekst, String veateateTekst, boolean fataalne) {
         VBox juur = new VBox();
 
@@ -675,7 +741,13 @@ public class MainUI extends Application {
         super.stop();
     }
 
-    public int kuvaTaimer(Stage primaryStage, int aeg) {
+    /************
+     * Meetod taimeri isendi ekraani loomiseks, loeb aega ning aja lõpus sulgeb iseennast.
+     * @param primaryStage
+     * @param aeg
+     * @return
+     */
+    public void kuvaTaimer(Stage primaryStage, int aeg) {
         Font digitalFont = Font.loadFont(getClass().getResourceAsStream("digital-7.ttf"), 100);
         BorderPane juur = new BorderPane();
         aeg = aeg * 60;
@@ -715,7 +787,6 @@ public class MainUI extends Application {
         primaryStage.show();
 
         taimer.alustaLoendust();
-        return 1;
     }
 
     private void taimeriEkraan(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> andmed, Eesmark eesmark, Ulesanne ulesanne) throws SQLException, IOException {
@@ -732,6 +803,18 @@ public class MainUI extends Application {
         uusLava.show();
     }
 
+    /**********
+     * Taimeri loomise ekraan, loeb andmebaasist ülesandele kulutatud aja ning võimaldab luua uut taimerit.
+     * @param eelmine
+     * @param omanik
+     * @param andmeHaldur
+     * @param andmed
+     * @param eesmark
+     * @param ulesanne
+     * @return
+     * @throws SQLException
+     * @throws IOException
+     */
     private Scene taimerUI(Scene eelmine, Window omanik, LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> andmed, Eesmark eesmark, Ulesanne ulesanne) throws SQLException, IOException {
         VBox juur = new VBox();
 

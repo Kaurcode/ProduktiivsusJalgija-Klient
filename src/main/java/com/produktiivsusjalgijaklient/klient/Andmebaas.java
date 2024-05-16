@@ -103,13 +103,6 @@ public class Andmebaas implements AutoCloseable {
 
     public void looProduktiivsusAegOlem() throws SQLException {
         final String tabeliNimi = "produktiivne_aeg";
-        final String kustutaProduktiivsusAegOlem =
-                "DROP TABLE IF EXISTS produktiivne_aeg;";
-
-        try (PreparedStatement kustutaTabelLause = andmebaas.prepareStatement(kustutaProduktiivsusAegOlem)) {
-            kustutaTabelLause.executeUpdate();
-        }
-
 
         if (kasOlemOlemas(tabeliNimi)) {
             System.out.printf("%s olem juba olemas\n", tabeliNimi);

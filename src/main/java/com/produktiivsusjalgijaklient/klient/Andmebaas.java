@@ -23,6 +23,10 @@ public class Andmebaas implements AutoCloseable {
         looProduktiivsusAegOlem();
     }
 
+    /**
+     * Loob andmebaasi failiga ühenduse
+     * @throws SQLException
+     */
     public void looUhendus() throws SQLException {
         File kaust = new File("SQLite");
         if (!kaust.isDirectory()) kaust.mkdirs();
@@ -30,6 +34,12 @@ public class Andmebaas implements AutoCloseable {
         andmebaas = DriverManager.getConnection(url);
     }
 
+    /**
+     * Kontrollib olemitüübi olemasolu
+     * @param olemiNimi olemitüübi nimi
+     * @return Kas olemitüüp on olemas? (tõeväärtus)
+     * @throws SQLException
+     */
     public boolean kasOlemOlemas(String olemiNimi) throws SQLException {
         DatabaseMetaData metaAndmed = andmebaas.getMetaData();
         try (ResultSet kasOlemOlemas = metaAndmed.getTables(null, null, olemiNimi, new String[]{"TABLE"})) {
@@ -37,6 +47,10 @@ public class Andmebaas implements AutoCloseable {
         }
     }
 
+    /**
+     * Loob kasutajate olemitüübi
+     * @throws SQLException
+     */
     public void looKasutajadOlem() throws SQLException {
         final String tabeliNimi = "kasutajad";
 
@@ -159,6 +173,12 @@ public class Andmebaas implements AutoCloseable {
         return kasutajaID;
     }
 
+    /**
+     * Tagastab aja sekundites, kui palju on mingi ülesande peale aega kulunud
+     * @param ulesanneID Ülesande ID, mille aega tahetakse teada
+     * @return Ülesandele kulunud aeg (sekundites)
+     * @throws SQLException
+     */
     public int tagastaUlesandeProduktiivneAeg(int ulesanneID) throws SQLException {
         final String tagastaUlesandeProduktiivneAeg =
                 "SELECT SUM(produktiivne_aeg_sekundites) AS aeg_sekundites " +
@@ -190,6 +210,12 @@ public class Andmebaas implements AutoCloseable {
         }
     }
 
+    /**
+     * Kontrollib kas kasutajanimi eksisteerib andmebaasis?
+     * @param kasutajaNimi Kontrollitav kasutajanimi
+     * @return Tõeväärtus, kas kasutaja on andmebaasis
+     * @throws SQLException
+     */
     public boolean kasKasutajanimiOlemas(String kasutajaNimi) throws SQLException {
         final String kontrolliUnikaalsust =
                 "SELECT COUNT(*) AS kasutajate_arv " +
@@ -205,6 +231,12 @@ public class Andmebaas implements AutoCloseable {
         }
     }
 
+    /**
+     * Tagastab kasutajanimele vastava soola ja räsi
+     * @param kasutajaNimi Kasutajanimi, mille soola ja räsi soovitakse
+     * @return Sõnejärjend, 1. element=parooli sool, 2. element=parooli räsi
+     * @throws SQLException
+     */
     public String[] tagastaKasutajaSoolJaRasi(String kasutajaNimi) throws SQLException {
         final String tagastaKasutajaSoolJaRasi =
                 "SELECT parooli_sool, parooli_rasi " +
@@ -222,6 +254,13 @@ public class Andmebaas implements AutoCloseable {
         }
     }
 
+    /**
+     * Tagastab vastavalt kasutajanimele ja paroolile kasutaja ID andmebaasis
+     * @param kasutajaNimi
+     * @param parool
+     * @return Kasutaja ID andmebaasis
+     * @throws SQLException
+     */
     public int tagastaKasutajaID(String kasutajaNimi, String parool) throws SQLException {
         final String tagastaKasutajaID =
                 "SELECT kasutaja_id " +

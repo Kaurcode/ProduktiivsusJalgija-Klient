@@ -38,6 +38,14 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
         logija.kirjutaErind(erind, teade);
     }
 
+    /**
+     * Kontrollib kasutajanime unikaalsust ning loob kasutaja
+     * @param kasutajaNimi
+     * @param parool
+     * @return Kasutaja loomisedukus
+     * @throws IOException
+     * @throws SQLException
+     */
     @Override
     public kasutajaLoomisOnnestumus looKasutaja(String kasutajaNimi, char[] parool) throws IOException, SQLException {
         try {
@@ -48,10 +56,10 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
             throw viga;
         }
 
-        String sool = ParooliRasija.genereeriSool();
-        String parooliRasi = ParooliRasija.looParooliRasi(parool, sool);
+        String sool = ParooliRasija.genereeriSool();  // Suvaline sool
+        String parooliRasi = ParooliRasija.looParooliRasi(parool, sool);  // Loob paroolile räsi
         try {
-            andmebaas.lisaUusKasutaja(kasutajaNimi, sool, parooliRasi);
+            andmebaas.lisaUusKasutaja(kasutajaNimi, sool, parooliRasi);  // Lisab kasutaja koos logimisinfoga andmebaasi
         } catch (SQLException viga) {
             logija.kirjutaErind(viga, "Uue kasutaja andmebaasi lisamine");
             throw viga;
@@ -60,6 +68,14 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
         return kasutajaLoomisOnnestumus.KASUTAJA_LOODUD;
     }
 
+    /**
+     * Autendib kasutaja
+     * @param kasutajaNimi
+     * @param parool
+     * @return Kasutaja autentimiõnnestumus
+     * @throws SQLException
+     * @throws IOException
+     */
     @Override
     public autentimisOnnestumus logiSisse(String kasutajaNimi, char[] parool) throws SQLException, IOException {
         if (!andmebaas.kasKasutajanimiOlemas(kasutajaNimi)) {
@@ -68,6 +84,7 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
         }
         String[] kasutajaAndmed = andmebaas.tagastaKasutajaSoolJaRasi(kasutajaNimi);
         String parooliRasi = ParooliRasija.looParooliRasi(parool, kasutajaAndmed[0]);
+        // Kontrollib, kas kasutaja sisestatud parool ja andmebaasis hoitav parool (räsid) ühtivad
         if (parooliRasi.contentEquals(kasutajaAndmed[1])) {
             try {
                 kasutajaID = andmebaas.tagastaKasutajaID(kasutajaNimi, parooliRasi);
@@ -119,6 +136,13 @@ public class LokaalneAndmeHaldur implements AndmeHaldur, AutoCloseable {
         }
     }
 
+    /**
+     * Tagastab, kui palju aega mingi ülesande peale aega on kulunud
+     * @param ulesandeID Ülesande id andmebaasis
+     * @return Aeg sekundites
+     * @throws SQLException
+     * @throws IOException
+     */
     public int tagastaUlesandeProduktiivneAeg(int ulesandeID) throws SQLException, IOException {
         try {
             int ulesandeProduktiivneAeg = andmebaas.tagastaUlesandeProduktiivneAeg(ulesandeID);

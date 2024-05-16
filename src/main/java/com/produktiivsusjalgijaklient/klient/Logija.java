@@ -17,8 +17,13 @@ public class Logija implements AutoCloseable {
         failiKirjutaja = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fail, true), StandardCharsets.UTF_8));
     }
 
+    /**
+     * Kirjutab ühe rea logifaili
+     * @param logi Rida, mida kirjutatakse
+     * @throws IOException
+     */
     public void kirjutaLogi(String logi) throws IOException {
-        LocalDateTime hetkeAeg = LocalDateTime.now();
+        LocalDateTime hetkeAeg = LocalDateTime.now();  // Logi kirjutamise hetkel olev aeg
         DateTimeFormatter ajaFormaat = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
         String formaaditudHetkeAeg = hetkeAeg.format(ajaFormaat);
 
@@ -26,6 +31,12 @@ public class Logija implements AutoCloseable {
         failiKirjutaja.newLine();
     }
 
+    /**
+     * Kirjutab logidesse erindi
+     * @param erind Erind, millest lisainformatsiooni saadakse
+     * @param selgitus Mida koodis parasjagu üritati teha
+     * @throws IOException
+     */
     public void kirjutaErind(SQLException erind, String selgitus) throws IOException {
         kirjutaLogi("SQL viga - %s - %s".formatted(selgitus, erind.getMessage()));
     }
@@ -34,6 +45,11 @@ public class Logija implements AutoCloseable {
         kirjutaLogi("Input-Output viga - %s - %s".formatted(selgitus, erind.getMessage()));
     }
 
+    /**
+     * Loeb viimased 10 rida, et vea hetkel näidata, mis taustal toimus
+     * @return Logifaili viimased 10 rida
+     * @throws IOException
+     */
     public String loeViimased10Rida() throws IOException {
         failiKirjutaja.flush();
         String failinimi = "logi.txt";

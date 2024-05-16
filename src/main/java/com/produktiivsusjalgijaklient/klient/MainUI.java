@@ -747,7 +747,7 @@ public class MainUI extends Application {
     public void stop() throws Exception {
         if (andmeHaldur != null) {
             andmeHaldur.close();
-        }
+        } if (taimer != null) taimer.close();
         super.stop();
     }
 
@@ -761,6 +761,8 @@ public class MainUI extends Application {
         Font digitalFont = Font.loadFont(getClass().getResourceAsStream("digital-7.ttf"), 100);
         BorderPane juur = new BorderPane();
         aeg = aeg * 60;
+        if (taimer != null) taimer.close();
+
         taimer = new Taimer(aeg);
         Label taimeriSilt = new Label();
         taimeriSilt.textProperty().bind(Bindings.createStringBinding(() -> {

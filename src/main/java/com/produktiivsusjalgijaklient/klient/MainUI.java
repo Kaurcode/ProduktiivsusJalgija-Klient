@@ -32,12 +32,6 @@ public class MainUI extends Application {
 
 
     public static void main(String[] args) {
-        /*try (LokaalneAndmeHaldur andmeHaldur = new LokaalneAndmeHaldur("produktiivsusjalgija")) {
-            System.out.println(andmeHaldur.logiSisse("Hannes", "parool".toCharArray()));
-            andmeHaldur.kirjutaLogi("Test");
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }*/
         launch(args);
     }
 
@@ -111,7 +105,6 @@ public class MainUI extends Application {
         valikuVaade.setPadding(new Insets(5));
         valikuVaade.setOnMouseClicked(mouseEvent -> {
             Eesmark valitudeesmark = valikuVaade.getSelectionModel().getSelectedItem();
-            System.out.println(valitudeesmark.getEesmargiNimi());
             try {
                 ulesanneteUI(valikuVaade.getScene(), valikuVaade.getScene().getWindow(), andmeHaldur, valitudeesmark, finalAndmed);
             } catch (SQLException | IOException e) {
@@ -141,10 +134,6 @@ public class MainUI extends Application {
         Scene stseen = new Scene(juur);
         stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Teema.css");
         return stseen;
-    }
-
-    private void saadaAndmed(String andmed) {
-        // TODO
     }
 
     private Scene sisselogimisUI(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) {
@@ -380,39 +369,6 @@ public class MainUI extends Application {
         return stseen;
     }
 
-    private void valitudKasutaja(Scene eelmine, Window omanik, String valitudKasutaja) {
-        VBox juur = new VBox();
-        juur.setAlignment(Pos.CENTER);
-        juur.setSpacing(10);
-
-        Label kasutajaNimiLabel = new Label("Valitud kasutaja: " + valitudKasutaja);
-
-        GridPane infoSisend = new GridPane();
-        infoSisend.setAlignment(Pos.BASELINE_LEFT);
-        infoSisend.setHgap(20);
-        infoSisend.setVgap(10);
-
-        Label parooliSilt = new Label("Sisesta parool:");
-        PasswordField parooliVali = new PasswordField();
-
-
-        Button logiSisse = new Button("Logi sisse");
-        Button tagasiNupp = new Button("Tagasi");
-
-
-        juur.getChildren().addAll(kasutajaNimiLabel, parooliSilt, parooliVali, logiSisse, tagasiNupp);
-        Scene uusStseen = new Scene(juur, 400, 300);
-        // Sulgeme eelneva stseeni
-        Stage peaLava = (Stage) omanik;
-        peaLava.close();
-
-        Stage uusLava = new Stage();
-        uusLava.setScene(uusStseen);
-        uusLava.initOwner(omanik);
-        uusLava.initModality(Modality.WINDOW_MODAL);
-        uusLava.show();
-    }
-
     private void algneStseen(LokaalneAndmeHaldur andmeHaldur, ArrayList<Eesmark> valikud) {
         Stage peaLava = new Stage();
         Scene algusStseen = kuvaAlgne(andmeHaldur, valikud);
@@ -452,9 +408,7 @@ public class MainUI extends Application {
 
     private Scene kuvaulesanded(LokaalneAndmeHaldur andmeHaldur, ArrayList<Ulesanne> andmed, Eesmark eesmark) throws SQLException, IOException {
         VBox juur = new VBox();
-        for (Ulesanne ulesanne : andmeHaldur.tagastaUlesanded(eesmark.getEesmargiID())) {
-            System.out.println(ulesanne.getUlesandeNimi());
-        }
+
         ArrayList<Ulesanne> finalAndmed = andmed;
         try {
             andmed = andmeHaldur.getAndmebaas().tagastaUlesanneteOlemid(eesmark.getEesmargiID());
@@ -776,9 +730,6 @@ public class MainUI extends Application {
         infoSisend.setHgap(20);
         infoSisend.setVgap(10);
 
-        System.out.println(ulesanne.getUlesandeID());
-        System.out.println( andmeHaldur.tagastaUlesandeProduktiivneAeg(ulesanne.getUlesandeID()));
-
         Text tekst = new Text("Seda ülesannet oled juba teinud " + andmeHaldur.tagastaUlesandeProduktiivneAeg(ulesanne.getUlesandeID()) + " minutit");
         tekst.setFill(Color.WHITE);
 
@@ -811,47 +762,5 @@ public class MainUI extends Application {
         stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Teema.css");
 
         return stseen;
-    }
-
-    public void kuvaTaimerPuhkama(Stage primaryStage, int aeg) {
-        Font digitalFont = Font.loadFont(getClass().getResourceAsStream("digital-7.ttf"), 100);
-        BorderPane juur = new BorderPane();
-        aeg = aeg * 60;
-        taimer = new Taimer(aeg);
-        Label taimeriSilt = new Label();
-        taimeriSilt.textProperty().bind(Bindings.createStringBinding(() -> {
-            int aegSekundites = taimer.getAegSekundites();
-            String mark;
-            if (Integer.signum(aegSekundites) == -1) {
-                mark = "+";
-                primaryStage.close();
-            } else {
-                mark = "";
-            }
-            aegSekundites = Math.abs(aegSekundites);
-            int minuteid = aegSekundites / 60;
-            int sekundeid = aegSekundites % 60;
-            return String.format("%s%02d:%02d", mark, minuteid, sekundeid);
-        }, taimer.aegSekunditesProperty()));
-
-        taimeriSilt.setFont(digitalFont);
-
-        juur.setCenter(taimeriSilt);
-        Button lopetaNupp = new Button("Stop");
-        lopetaNupp.getStyleClass().add("lopeta-nupp");
-        lopetaNupp.setOnAction(e -> {taimer.close(); primaryStage.close();});
-
-        BorderPane.setAlignment(lopetaNupp, Pos.CENTER);
-        juur.setBottom(lopetaNupp);
-
-
-        juur.setBackground(Background.EMPTY);
-
-        Scene stseen = new Scene(juur, 400, 200);
-        stseen.getStylesheets().add("com/produktiivsusjalgijaklient/klient/Taimer.css");
-        primaryStage.setScene(stseen);
-        primaryStage.show();
-
-        taimer.alustaLoendust();
     }
 }
